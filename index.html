@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>CuBirds 対戦アプリ</title>
+<style>
+:root{--bg1:#0f172a;--bg2:#1e293b;--card:#fff;--text:#1e293b;--muted:#64748b;--accent:#f59e0b;--accent2:#fbbf24;--ok:#10b981;--danger:#ef4444;--shadow:0 8px 24px rgba(0,0,0,.15)}
+*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100vh}
+body{font-family:"Hiragino Sans","Yu Gothic UI",system-ui,sans-serif;color:#e2e8f0;background:linear-gradient(150deg,var(--bg1),var(--bg2))}
+button,input,select{font:inherit}
+.shell{max-width:1200px;margin:0 auto;padding:10px}
+.topStrip{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px 16px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.topStrip h1{font-size:22px;background:linear-gradient(90deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:auto}
+.topStrip input,.topStrip select{height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;padding:0 10px;font-size:13px;width:110px}
+.topStrip select{width:70px}
+button{appearance:none;border:none;height:36px;padding:0 14px;border-radius:10px;font-weight:800;cursor:pointer;font-size:13px;transition:transform .06s}button:hover{transform:translateY(-1px)}button:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.bp{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#4a2b05}.bd{background:#334155;color:#fff}.bs{background:rgba(255,255,255,.1);color:#fff}.bok{background:var(--ok);color:#fff}.bdn{background:var(--danger);color:#fff}
+.statusBar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.pill{padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:700}
+.statusMsg{background:linear-gradient(180deg,#fffbeb,#fef3c7);color:#92400e;border:1px solid #fcd34d;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:800;margin-bottom:8px}
+.playerRow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.pc{flex:1 1 180px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);min-width:0}
+.pc.act{outline:2px solid rgba(252,211,77,.85)}.pc .nm{font-size:15px;font-weight:900}.pc .inf{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px}
+.collRow{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}.cBadge{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;border:1px solid rgba(0,0,0,.12)}
+.tableBox{background:var(--card);color:var(--text);border-radius:18px;box-shadow:var(--shadow);padding:14px;margin-bottom:10px}
+.tableBox h2{font-size:15px;margin-bottom:8px}
+.rowWrap{margin-bottom:8px}.rowLbl{font-size:12px;font-weight:800;color:var(--muted);margin-bottom:3px}
+.tRow{display:flex;align-items:center;gap:5px;overflow-x:auto;padding:2px 0}
+.sBtn{flex:0 0 38px;height:68px;border-radius:10px;font-size:20px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border:2px solid #e2e8f0;cursor:pointer;transition:.1s}.sBtn:hover{background:#fef3c7;border-color:#fbbf24}.sBtn.sel{background:#fef3c7;border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.3)}
+.tc{flex:0 0 52px;height:68px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:24px;border:1px solid rgba(0,0,0,.1);position:relative;user-select:none;overflow:hidden}
+.tc .tcF{font-size:8px;font-weight:800;color:rgba(0,0,0,.55);line-height:1;white-space:nowrap}
+.tc .tip{display:none;position:absolute;bottom:115%;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:3px 8px;border-radius:6px;font-size:10px;white-space:nowrap;z-index:10}.tc:hover .tip{display:block}
+.phaseBox{background:linear-gradient(180deg,#fffbeb,#fef3c7);color:var(--text);border:1px solid #fcd34d;border-radius:14px;padding:12px 14px;margin-bottom:10px;display:none}
+.phaseBox.show{display:block}
+.phT{font-size:14px;font-weight:900;color:#92400e;margin-bottom:4px}.phD{font-size:12px;color:var(--muted);margin-bottom:8px}
+.birdSel{display:flex;flex-wrap:wrap;gap:6px}.bBtn{padding:7px 12px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;border:2px solid transparent;color:#fff;transition:.1s}.bBtn.sel{border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.3)}
+.flkSel{display:flex;flex-wrap:wrap;gap:6px}.fBtn{padding:7px 12px;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;border:2px solid transparent;color:#fff;transition:.1s}.fBtn.sel{border-color:#f59e0b}
+.handBox{margin-bottom:10px}.handH{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;flex-wrap:wrap}.handH .t{font-size:17px;font-weight:900}.handH .s{font-size:12px;color:rgba(255,255,255,.6)}
+.handScr{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.hc{flex:0 0 64px;height:80px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#fff;font-weight:900;cursor:pointer;border:2px solid transparent;transition:.12s;user-select:none;position:relative;overflow:hidden;padding:4px 2px}
+.hc .hE{font-size:26px;line-height:1}.hc .hN{font-size:9px;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;text-align:center}.hc .hI{font-size:9px;line-height:1;opacity:.85}.hc .hCnt{position:absolute;top:2px;right:3px;font-size:9px;background:rgba(0,0,0,.45);padding:1px 4px;border-radius:4px;line-height:1.2}
+.hc.sel{transform:translateY(-8px);border-color:#fde68a;box-shadow:0 14px 24px rgba(0,0,0,.2)}.hc.dim{opacity:.35}
+.bottomBox{background:var(--card);color:var(--text);border-radius:18px;box-shadow:var(--shadow);padding:14px;margin-bottom:10px}
+.tabH{display:flex;gap:6px;margin-bottom:10px}.tabB{height:32px;border-radius:8px;font-size:12px;font-weight:800;padding:0 12px;background:#f1f5f9;color:#64748b;border:none;cursor:pointer}.tabB.act{background:linear-gradient(90deg,#fbbf24,#f59e0b);color:#4a2b05}
+.logScr{max-height:400px;overflow:auto;display:grid;gap:6px}
+.logI{padding:8px 10px;border-radius:10px;background:#faf6ef;border:1px solid #eee2d1}.logI .lt{font-size:12px;font-weight:800}.logI .ls{font-size:10px;color:var(--muted)}
+.ruleWrap{font-size:13px;line-height:1.8;color:var(--text)}
+.ruleWrap h3{font-size:15px;margin:10px 0 4px;color:#92400e}
+.ruleWrap table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px}
+.ruleWrap th,.ruleWrap td{padding:6px 8px;border:1px solid #e5d5be;text-align:center}
+.ruleWrap th{background:#fef3c7;font-weight:800;color:#92400e}
+.ruleWrap td:first-child{text-align:left}
+.toast{position:fixed;right:14px;bottom:14px;z-index:1000;background:rgba(17,24,39,.92);color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;max-width:320px;font-size:13px}.toast.show{opacity:1;transform:translateY(0)}
+.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(0,0,0,.5);z-index:999}.ov.show{display:flex}
+.modal{width:min(500px,100%);background:#fff;color:var(--text);border-radius:18px;box-shadow:var(--shadow);padding:20px}.modal h3{margin-bottom:8px;font-size:20px}.modal p{color:var(--muted);margin-bottom:14px;line-height:1.7;font-size:14px;white-space:pre-line}
+@media(max-width:700px){
+  .topStrip{flex-direction:column;align-items:stretch}
+  .topStrip h1{font-size:18px;text-align:center;margin-bottom:4px}
+  .topStrip input,.topStrip select{width:100%}
+  .tc{flex:0 0 44px;height:60px;font-size:20px}
+  .tc .tcF{font-size:7px}
+  .hc{flex:0 0 56px;height:72px;padding:3px 1px}
+  .hc .hE{font-size:22px}.hc .hN{font-size:8px}.hc .hI{font-size:8px}
+  .hc .hCnt{font-size:8px;top:1px;right:2px}
+  .sBtn{flex:0 0 32px;height:52px;font-size:16px}
+  .handScr{gap:5px}
+  .tRow{gap:3px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<div class="topStrip">
+  <h1>🐦 CuBirds</h1>
+  <input id="playerName" type="text" maxlength="20" placeholder="名前">
+  <select id="maxPlayers"></select>
+  <input id="roomInput" type="text" maxlength="12" placeholder="部屋番号">
+  <button id="createBtn" class="bp">部屋作成</button>
+  <button id="joinBtn" class="bd">参加</button>
+  <button id="copyBtn" class="bs" disabled>コピー</button>
+  <button id="startBtn" class="bok" disabled>開始</button>
+  <button id="resetBtn" class="bdn" disabled>初期化</button>
+  <span class="pill" id="pillRoom">部屋: -</span>
+  <span class="pill" id="pillSeat">席: -</span>
+</div>
+
+<div class="statusBar">
+  <span class="pill" id="pillTurn">手番: -</span>
+  <span class="pill" id="pillPhase">フェーズ: -</span>
+  <span class="pill" id="pillDeck">山札: 0</span>
+  <span class="pill" id="pillDiscard">捨て: 0</span>
+  <span class="pill" id="pillStatus">待機中</span>
+</div>
+<div class="statusMsg" id="statusMsg">部屋を作成するか、参加してください。</div>
+
+<div class="playerRow" id="playerRow"></div>
+
+<div class="tableBox">
+  <h2>🍯 場のカード（4列）</h2>
+  <div id="rowsCont"></div>
+</div>
+
+<div class="phaseBox" id="phaseBox">
+  <div class="phT" id="phT">アクション</div>
+  <div class="phD" id="phD">-</div>
+  <div id="phC"></div>
+</div>
+
+<div class="handBox">
+  <div class="handH">
+    <div class="t">🃏 あなたの手札 <span id="hCnt">0</span>枚</div>
+    <div class="s" id="hHelp">-</div>
+  </div>
+  <div class="handScr" id="handScr"></div>
+</div>
+
+<div class="bottomBox">
+  <div class="tabH">
+    <button id="tabLog" class="tabB act">行動ログ</button>
+    <button id="tabRule" class="tabB">ルール・鳥一覧</button>
+  </div>
+  <div id="logPane"><div class="logScr" id="logList"></div></div>
+  <div id="rulePane" style="display:none">
+    <div class="ruleWrap">
+      <h3>🏆 勝利条件</h3>
+      <p>手番終了時に以下のどちらかを満たしたプレイヤーの勝利です。<br>
+      <b>① 7種類</b>の鳥を1枚ずつコレクション（全8種中7種）<br>
+      <b>② 2種類</b>の鳥を3枚ずつ以上コレクション</p>
+      <h3>📋 ターンの流れ</h3>
+      <p><b>1. カード配置</b> — 手札から1種類の鳥を選び、4列の左端か右端に全枚配置。<br>
+      　同種の鳥で挟むと、間のカードを全て獲得。<br>
+      　列が1種類だけになったら山札から自動補充。<br>
+      　挟みなしなら山札から2枚引くかパス。<br>
+      <b>2. 群れ公開</b> — 手札の同種カードを群れとして公開（1手番1回、任意）。<br>
+      　小さな群れ → 1枚コレクション / 大きな群れ → 2枚コレクション。<br>
+      <b>3. 勝利判定</b> — 勝利条件チェック。<br>
+      　手札0枚なら全員手札リセット（8枚再配布）。</p>
+      <h3>🐦 鳥カード一覧（全110枚）</h3>
+      <table>
+        <tr><th>鳥</th><th>小群れ</th><th>大群れ</th><th>総枚数</th></tr>
+        <tr><td>🦩 フラミンゴ</td><td>2</td><td>3</td><td>7</td></tr>
+        <tr><td>🦉 フクロウ</td><td>3</td><td>4</td><td>10</td></tr>
+        <tr><td>🐦 オオハシ</td><td>3</td><td>4</td><td>10</td></tr>
+        <tr><td>🦆 カモ</td><td>4</td><td>6</td><td>13</td></tr>
+        <tr><td>🦜 オウム</td><td>4</td><td>6</td><td>13</td></tr>
+        <tr><td>🐦‍⬛ カササギ</td><td>5</td><td>7</td><td>17</td></tr>
+        <tr><td>🐤 ヨシキリ</td><td>6</td><td>9</td><td>20</td></tr>
+        <tr><td>🪶 コマドリ</td><td>6</td><td>9</td><td>20</td></tr>
+      </table>
+      <p style="font-size:11px;color:#94a3b8">※ 小群れ = その枚数以上でコレクション1枚追加、大群れ = その枚数以上でコレクション2枚追加。残りは捨て札。</p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+<div id="resOv" class="ov"><div class="modal"><h3 id="resT">ゲーム終了</h3><p id="resB">-</p><button id="resClose" class="bd">閉じる</button></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<script>
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDMDKdmv69du_zuCpTFm6aC0g6xPdWZvtM",
+  authDomain: "cubirds-a0d1d.firebaseapp.com",
+  databaseURL: "https://cubirds-a0d1d-default-rtdb.firebaseio.com",
+  projectId: "cubirds-a0d1d",
+  storageBucket: "cubirds-a0d1d.firebasestorage.app",
+  messagingSenderId: "173954201343",
+  appId: "1:173954201343:web:b3e7a7f878e69fcbd23eca"
+};
+firebase.initializeApp(FIREBASE_CONFIG);
+var DB = firebase.database();
+
+var BIRDS={FLAMINGO:{name:'フラミンゴ',emoji:'🦩',small:2,large:3,total:7,color:'#f472b6'},OWL:{name:'フクロウ',emoji:'🦉',small:3,large:4,total:10,color:'#a78bfa'},TOUCAN:{name:'オオハシ',emoji:'🐦',small:3,large:4,total:10,color:'#fb923c'},DUCK:{name:'カモ',emoji:'🦆',small:4,large:6,total:13,color:'#38bdf8'},PARROT:{name:'オウム',emoji:'🦜',small:4,large:6,total:13,color:'#4ade80'},MAGPIE:{name:'カササギ',emoji:'🐦‍⬛',small:5,large:7,total:17,color:'#94a3b8'},WARBLER:{name:'ヨシキリ',emoji:'🐤',small:6,large:9,total:20,color:'#fbbf24'},ROBIN:{name:'コマドリ',emoji:'🪶',small:6,large:9,total:20,color:'#f87171'}};
+var BK=Object.keys(BIRDS);
+var HAND_SIZE=8, ROW_COUNT=4, INIT_ROW_SIZE=3, LOG_TAIL=200;
+var PH={place:'カード配置',draw_or_pass:'ドロー/パス',flock:'群れ公開'};
+var SK={token:'cb_token',roomId:'cb_room',name:'cb_name'};
+
+var S={
+  token:ldTk(),
+  roomId:localStorage.getItem(SK.roomId)||'',
+  playerName:localStorage.getItem(SK.name)||'',
+  room:null, roomRef:null, subscribedId:'',
+  pending:false, shownRes:null,
+  selBird:'', selRow:-1, selSide:'',
+  selFlock:'', selFlockSz:''
+};
+var E={};
+['playerName','maxPlayers','roomInput','createBtn','joinBtn','copyBtn','startBtn','resetBtn','pillRoom','pillSeat','pillTurn','pillPhase','pillDeck','pillDiscard','pillStatus','statusMsg','playerRow','rowsCont','phaseBox','phT','phD','phC','hCnt','hHelp','handScr','tabLog','tabRule','logPane','rulePane','logList','toast','resOv','resT','resB','resClose'].forEach(function(id){E[id]=document.getElementById(id);});
+
+init();
+
+function init(){
+  for(var i=2;i<=5;i++){var o=document.createElement('option');o.value=i;o.textContent=i+'人';if(i===4)o.selected=true;E.maxPlayers.appendChild(o);}
+  E.playerName.value=S.playerName;
+  var rp=new URL(location.href).searchParams.get('room');
+  if(rp)S.roomId=rp.toUpperCase();
+  E.roomInput.value=S.roomId;
+  bindEv();
+  renderAll();
+  if(S.roomId) joinRoom(S.roomId,false);
+}
+
+function bindEv(){
+  E.playerName.addEventListener('input',saveName);
+  E.playerName.addEventListener('change',saveName);
+  E.createBtn.addEventListener('click',createRoom);
+  E.joinBtn.addEventListener('click',function(){joinRoom((E.roomInput.value||'').trim().toUpperCase(),true);});
+  E.copyBtn.addEventListener('click',cpRoom);
+  E.startBtn.addEventListener('click',startGame);
+  E.resetBtn.addEventListener('click',resetRoom);
+  E.tabLog.addEventListener('click',function(){setTab('log');});
+  E.tabRule.addEventListener('click',function(){setTab('rule');});
+  E.resClose.addEventListener('click',function(){E.resOv.classList.remove('show');});
+}
+
+function ldTk(){var t=localStorage.getItem(SK.token);if(!t){t='cb_'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem(SK.token,t);}return t;}
+function saveName(){S.playerName=(E.playerName.value||'').trim().slice(0,20);localStorage.setItem(SK.name,S.playerName);}
+
+function roomPath(id){return 'cb_rooms/'+id;}
+function genRoomId(){var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';var id='';for(var i=0;i<6;i++)id+=chars.charAt(Math.floor(Math.random()*chars.length));return id;}
+function nowIso(){return new Date().toISOString();}
+function uid(){return Math.random().toString(36).slice(2,10);}
+
+function txRoom(id, updater){
+  var ref = DB.ref(roomPath(id));
+  return ref.transaction(function(cur){
+    if(cur===null) return;
+    try{return updater(cur);}catch(e){console.error('tx err',e);throw e;}
+  });
+}
+
+function subscribeRoom(id){
+  if(S.subscribedId===id && S.roomRef) return; // 既に購読中
+  if(S.roomRef){S.roomRef.off();S.roomRef=null;}
+  S.subscribedId = id;
+  S.roomRef = DB.ref(roomPath(id));
+  S.roomRef.on('value',function(snap){
+    var raw = snap.val();
+    if(!raw){
+      if(S.subscribedId===id){tst('部屋が削除されました');S.room=null;S.roomId='';localStorage.removeItem(SK.roomId);renderAll();}
+      return;
+    }
+    S.room = buildView(raw, S.token);
+    S.roomId = raw.roomId;
+    localStorage.setItem(SK.roomId, S.roomId);
+    var u=new URL(location.href);if(u.searchParams.get('room')!==S.roomId){u.searchParams.set('room',S.roomId);history.replaceState({},'',u.toString());}
+    renderAll();
+    maybeRes();
+  },function(err){console.error('sub err',err);tst('接続エラー');});
+}
+
+/* ============================================================
+   Actions
+   ============================================================ */
+function createRoom(){
+  saveName();
+  if(S.pending)return;
+  pen(true);
+  var tryCreate = function(attempt){
+    if(attempt>5){pen(false);tst('ID生成失敗');return;}
+    var id = genRoomId();
+    var ref = DB.ref(roomPath(id));
+    ref.transaction(function(cur){
+      if(cur!==null) return;
+      var owner = createPlayer(0, S.token, S.playerName||'ホスト');
+      var settings = {maxPlayers: Math.max(2, Math.min(5, Number(E.maxPlayers.value||4)))};
+      return emptyState(id, settings, [owner], nowIso(), S.token);
+    },function(err,committed){
+      if(err){pen(false);hErr(err);return;}
+      if(!committed){tryCreate(attempt+1);return;}
+      // 購読を先に開始、state は subscribe 経由で来る
+      subscribeRoom(id);
+      pen(false); tst('ルーム作成！');
+    });
+  };
+  tryCreate(0);
+}
+
+// ★修正: 購読を先に開始、その後トランザクションで自席追加
+function joinRoom(id, show){
+  if(!id){tst('部屋番号を入力');return;}
+  saveName();
+  if(S.pending)return;
+  pen(true);
+  // ★Step1: 先に購読開始 → subscribe listener が state 変化を検知する
+  subscribeRoom(id);
+
+  // ★Step2: トランザクションで自席を確保 (一回のクリックで参加完了)
+  var ref = DB.ref(roomPath(id));
+  ref.transaction(function(st){
+    if(st===null) return; // 存在しない部屋 (abort)
+    var seat = detectSeat(st, S.token);
+    var name = normName(S.playerName, 'プレイヤー');
+    if(seat>=0){
+      // 既に席あり → 名前更新のみ
+      st.players[seat].name = name;
+      pushLog(st,'system', name+' が再接続しました。');
+    } else if(st.status==='waiting'){
+      var cnt = (st.players||[]).length;
+      if(cnt < st.settings.maxPlayers){
+        var p = createPlayer(cnt, S.token, name);
+        st.players.push(p);
+        st.hands = st.hands||{}; st.collections = st.collections||{};
+        st.hands[String(cnt)] = [];
+        st.collections[String(cnt)] = [];
+        pushLog(st,'system', p.name+' が参加しました。');
+      }
+    }
+    trimLogs(st); st.updatedAt = nowIso();
+    return st;
+  }, function(err, committed, snap){
+    pen(false);
+    if(err){hErr(err);return;}
+    if(!snap || !snap.exists()){
+      // 部屋が存在しなかった → 購読解除
+      if(S.roomRef){S.roomRef.off();S.roomRef=null;S.subscribedId='';}
+      tst('ルームが見つかりません');
+      return;
+    }
+    if(show){
+      var st = snap.val();
+      var mySeat = detectSeat(st, S.token);
+      if(mySeat>=0) tst('参加！（P'+(mySeat+1)+'）');
+      else if(st.status==='playing') tst('対戦中のため観戦モード');
+      else tst('満員のため観戦モード');
+    }
+  });
+}
+
+function startGame(){
+  if(!S.roomId||S.pending)return;
+  pen(true);
+  txRoom(S.roomId, function(st){
+    var seat = detectSeat(st, S.token);
+    if(seat<0) throw new Error('参加者のみ開始できます。');
+    if(st.status!=='waiting') throw new Error('すでに開始されています。');
+    if((st.players||[]).length<2) throw new Error('2人以上参加してください。');
+    initGame(st);
+    st.updatedAt = nowIso();
+    return st;
+  }).then(function(){pen(false);tst('ゲーム開始！');},function(e){pen(false);hErr(e);});
+}
+
+function resetRoom(){
+  if(!S.roomId||!confirm('初期化しますか？')||S.pending)return;
+  pen(true);
+  txRoom(S.roomId, function(st){
+    var seat = detectSeat(st, S.token);
+    if(seat<0) throw new Error('参加者のみリセットできます。');
+    var ps = (st.players||[]).map(function(p){return createPlayer(p.seat,p.token,p.name);});
+    var next = emptyState(st.roomId, st.settings, ps, nowIso(), ps[0]?ps[0].token:S.token);
+    pushLog(next,'system','ルームを初期化しました。');
+    return next;
+  }).then(function(){pen(false);tst('初期化');},function(e){pen(false);hErr(e);});
+}
+
+function doPlace(){
+  if(!S.selBird||S.selRow<0||!S.selSide){tst('鳥・列・方向を選択');return;}
+  if(S.pending)return;
+  var birdType=S.selBird, rowIdx=S.selRow, side=S.selSide;
+  pen(true);
+  txRoom(S.roomId, function(st){
+    ensurePlaying(st);
+    var seat = detectSeat(st, S.token);
+    ensureTurn(st, seat);
+    if(st.turnPhase!=='place') throw new Error('カード配置フェーズではありません。');
+    if(BK.indexOf(birdType)<0) throw new Error('無効な鳥');
+    if(rowIdx<0||rowIdx>=ROW_COUNT) throw new Error('無効な列');
+    if(side!=='left'&&side!=='right') throw new Error('方向エラー');
+
+    var hand = getHand(st, seat);
+    var cards = [];
+    for(var i=hand.length-1;i>=0;i--){
+      if(hand[i].t===birdType) cards.push(hand.splice(i,1)[0]);
+    }
+    if(!cards.length) throw new Error('その鳥カードは手札にありません。');
+    cards.reverse();
+
+    st.rows = st.rows||[[],[],[],[]];
+    var tableRow = st.rows[rowIdx]||[];
+    var hasMatch = false;
+    for(var j=0;j<tableRow.length;j++) if(tableRow[j].t===birdType){hasMatch=true;break;}
+
+    var player = playerBySeat(st, seat);
+    if(hasMatch){
+      var collected = doSandwich(st, rowIdx, side, birdType, cards);
+      for(var k=0;k<collected.length;k++) hand.push(collected[k]);
+      pushLog(st,'play', player.name+' が '+birdLabel(birdType)+' を列'+(rowIdx+1)+'('+(side==='left'?'左':'右')+')に配置し、'+collected.length+' 枚獲得。');
+      refillRowIfNeeded(st, rowIdx, side);
+      st.turnPhase='flock'; st.sandwichResult='captured';
+    }else{
+      if(side==='left'){for(var m=cards.length-1;m>=0;m--) tableRow.unshift(cards[m]);}
+      else{for(var m2=0;m2<cards.length;m2++) tableRow.push(cards[m2]);}
+      st.rows[rowIdx] = tableRow;
+      pushLog(st,'play', player.name+' が '+birdLabel(birdType)+' を列'+(rowIdx+1)+'('+(side==='left'?'左':'右')+')に配置。挟みなし。');
+      st.turnPhase='draw_or_pass'; st.sandwichResult='none';
+    }
+    trimLogs(st); st.updatedAt=nowIso();
+    return st;
+  }).then(function(){clrSel();pen(false);},function(e){pen(false);hErr(e);});
+}
+
+function doDP(choice){
+  if(S.pending)return;
+  pen(true);
+  txRoom(S.roomId, function(st){
+    ensurePlaying(st);
+    var seat = detectSeat(st, S.token);
+    ensureTurn(st, seat);
+    if(st.turnPhase!=='draw_or_pass') throw new Error('ドロー/パスフェーズではありません。');
+    var player = playerBySeat(st, seat);
+    if(choice==='draw'){
+      drawCards(st, seat, 2);
+      pushLog(st,'draw', player.name+' が山札から 2 枚引きました。');
+    } else {
+      pushLog(st,'turn', player.name+' がドローをパスしました。');
+    }
+    st.turnPhase='flock'; trimLogs(st); st.updatedAt=nowIso();
+    return st;
+  }).then(function(){clrSel();pen(false);},function(e){pen(false);hErr(e);});
+}
+
+function doFlock(){
+  if(S.pending)return;
+  var bt = S.selFlock||'skip';
+  var sz = S.selFlockSz;
+  pen(true);
+  txRoom(S.roomId, function(st){
+    ensurePlaying(st);
+    var seat = detectSeat(st, S.token);
+    ensureTurn(st, seat);
+    if(st.turnPhase!=='flock') throw new Error('群れ公開フェーズではありません。');
+    var player = playerBySeat(st, seat);
+
+    if(!bt || bt==='skip'){
+      pushLog(st,'turn', player.name+' が群れ公開をスキップしました。');
+      finishTurn(st, seat); trimLogs(st); st.updatedAt=nowIso(); return st;
+    }
+    if(BK.indexOf(bt)<0) throw new Error('無効な鳥');
+    var info = BIRDS[bt];
+    var hand = getHand(st, seat);
+    var count = 0;
+    for(var i=0;i<hand.length;i++) if(hand[i].t===bt) count++;
+    var isLarge = (sz==='large' && count>=info.large);
+    var isSmall = (sz==='small' && count>=info.small);
+    if(!isLarge && !isSmall){
+      if(count>=info.large && sz==='large') isLarge=true;
+      else if(count>=info.small) isSmall=true;
+      else throw new Error(birdLabel(bt)+' の群れを作るには枚数が足りません（'+count+'枚 / 小'+info.small+', 大'+info.large+'）。');
+    }
+    var toColl = isLarge?2:1;
+    var coll = (st.collections=st.collections||{})[String(seat)] = (st.collections[String(seat)]||[]);
+    var added = 0;
+    for(var j=hand.length-1;j>=0;j--){
+      if(hand[j].t===bt){
+        var card = hand.splice(j,1)[0];
+        if(added<toColl){coll.push(card); added++;}
+        else{ (st.discard=st.discard||[]).push(card); }
+      }
+    }
+    var label = isLarge?'大きな群れ':'小さな群れ';
+    pushLog(st,'flock', player.name+' が '+birdLabel(bt)+' の'+label+'を公開し、'+toColl+' 枚をコレクションに追加。');
+    finishTurn(st, seat); trimLogs(st); st.updatedAt=nowIso();
+    return st;
+  }).then(function(){clrSel();pen(false);},function(e){pen(false);hErr(e);});
+}
+
+function clrSel(){S.selBird='';S.selRow=-1;S.selSide='';S.selFlock='';S.selFlockSz='';}
+
+/* ============================================================
+   Game logic (Code7.gs 移植 / ルール変更なし)
+   ============================================================ */
+function emptyState(roomId, settings, players, now, ownerToken){
+  var hands={}, colls={};
+  for(var i=0;i<players.length;i++){hands[String(i)]=[]; colls[String(i)]=[];}
+  return {
+    roomId:roomId, ownerToken:ownerToken||(players[0]?players[0].token:''),
+    status:'waiting', createdAt:now, startedAt:'', finishedAt:'',
+    settings:settings, players:players, hands:hands, collections:colls,
+    deck:[], discard:[], rows:[[],[],[],[]],
+    turnSeat:0, turnPhase:'place', sandwichResult:'', turnSerial:1,
+    winnerSeat:null, winCondition:'', resultSummary:'',
+    logs:[mkLog('system', players[0].name+' がルームを作成しました。')],
+    updatedAt:now
+  };
+}
+
+function initGame(st){
+  var deck = shuffle(createDeck());
+  var n = st.players.length;
+  st.hands={}; st.collections={};
+  for(var i=0;i<n;i++){
+    st.hands[String(i)] = [];
+    st.collections[String(i)] = [];
+    for(var j=0;j<HAND_SIZE;j++) st.hands[String(i)].push(deck.shift());
+  }
+  st.rows = [];
+  for(var r=0;r<ROW_COUNT;r++){
+    st.rows.push([]);
+    for(var c=0;c<INIT_ROW_SIZE;c++) st.rows[r].push(deck.shift());
+  }
+  for(var p=0;p<n;p++){
+    st.collections[String(p)].push(deck.shift());
+  }
+  st.deck = deck; st.discard = [];
+  st.status='playing'; st.startedAt=nowIso(); st.finishedAt='';
+  st.turnSeat=0; st.turnPhase='place'; st.sandwichResult=''; st.turnSerial=1;
+  st.resultSummary=''; st.winnerSeat=null; st.winCondition='';
+  pushLog(st,'system','ゲーム開始！ 各プレイヤーに8枚配布、場に4列×3枚配置、初期コレクション1枚配布。');
+  trimLogs(st);
+}
+
+function doSandwich(st, rowIdx, side, birdType, placedCards){
+  var tableRow = st.rows[rowIdx]||[];
+  if(side==='left'){for(var i=placedCards.length-1;i>=0;i--) tableRow.unshift(placedCards[i]);}
+  else{for(var i2=0;i2<placedCards.length;i2++) tableRow.push(placedCards[i2]);}
+  var first=-1,last=-1;
+  for(var j=0;j<tableRow.length;j++){
+    if(tableRow[j].t===birdType){if(first===-1)first=j;last=j;}
+  }
+  if(first===last||first===-1){st.rows[rowIdx]=tableRow;return [];}
+  var between=[],kept=[];
+  for(var k=0;k<tableRow.length;k++){
+    if(k>first&&k<last&&tableRow[k].t!==birdType) between.push(tableRow[k]);
+    else kept.push(tableRow[k]);
+  }
+  st.rows[rowIdx]=kept;
+  return between;
+}
+
+function refillRowIfNeeded(st, rowIdx, side){
+  var tableRow = st.rows[rowIdx]||[];
+  var types = {};
+  for(var i=0;i<tableRow.length;i++) types[tableRow[i].t]=true;
+  var typeCount = Object.keys(types).length;
+  var safety=0;
+  while(typeCount<2 && safety<50){
+    ensureDeck(st);
+    if(!st.deck.length) break;
+    var card = st.deck.shift();
+    if(side==='left') tableRow.unshift(card);
+    else tableRow.push(card);
+    types[card.t]=true;
+    typeCount=Object.keys(types).length;
+    safety++;
+  }
+  st.rows[rowIdx]=tableRow;
+}
+
+function finishTurn(st, seat){
+  var wc = checkWin(st, seat);
+  if(wc){
+    st.status='ended'; st.finishedAt=nowIso();
+    st.winnerSeat=seat; st.winCondition=wc;
+    var p = playerBySeat(st, seat);
+    var condLabel = wc==='7types'?'7種類コレクション達成':'2種類×3枚以上コレクション達成';
+    st.resultSummary = p.name+' の勝利！（'+condLabel+'）';
+    pushLog(st,'system', st.resultSummary);
+    return;
+  }
+  var hand = getHand(st, seat);
+  if(hand.length===0){
+    pushLog(st,'system', playerBySeat(st,seat).name+' の手札が0枚になりました。全員手札リセット！');
+    restartRound(st, seat); return;
+  }
+  advanceTurn(st, seat);
+}
+
+function restartRound(st, keepSeat){
+  for(var i=0;i<st.players.length;i++){
+    var h = getHand(st, st.players[i].seat);
+    while(h.length) (st.discard=st.discard||[]).push(h.pop());
+  }
+  ensureDeck(st);
+  for(var j=0;j<st.players.length;j++){
+    var s2 = st.players[j].seat;
+    for(var k=0;k<HAND_SIZE;k++){
+      ensureDeck(st);
+      if(st.deck.length) getHand(st,s2).push(st.deck.shift());
+    }
+  }
+  st.turnSeat=keepSeat; st.turnPhase='place'; st.turnSerial=(st.turnSerial||1)+1;
+}
+
+function advanceTurn(st, fromSeat){
+  var seats = st.players.map(function(p){return p.seat;});
+  var idx = seats.indexOf(fromSeat);
+  var next = (idx+1)%seats.length;
+  st.turnSeat = seats[next];
+  st.turnPhase='place'; st.sandwichResult='';
+  st.turnSerial=(st.turnSerial||1)+1;
+}
+
+function checkWin(st, seat){
+  var coll = (st.collections||{})[String(seat)]||[];
+  var counts = {};
+  for(var i=0;i<coll.length;i++) counts[coll[i].t]=(counts[coll[i].t]||0)+1;
+  var types = Object.keys(counts);
+  if(types.length>=7) return '7types';
+  var big3=0;
+  for(var j=0;j<types.length;j++) if(counts[types[j]]>=3) big3++;
+  if(big3>=2) return '2x3';
+  return '';
+}
+
+function createDeck(){
+  var deck=[];
+  for(var k=0;k<BK.length;k++){
+    var type=BK[k], info=BIRDS[type];
+    for(var i=0;i<info.total;i++){
+      deck.push({id:type+'_'+i+'_'+uid(), t:type});
+    }
+  }
+  return deck;
+}
+function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function drawCards(st, seat, count){
+  for(var i=0;i<count;i++){
+    ensureDeck(st);
+    if(!st.deck.length) break;
+    getHand(st, seat).push(st.deck.shift());
+  }
+}
+function ensureDeck(st){
+  if((st.deck||[]).length>0) return;
+  if(!(st.discard||[]).length) return;
+  st.deck = shuffle(st.discard);
+  st.discard = [];
+  pushLog(st,'system','山札を捨て札からリシャッフルしました。');
+}
+
+function createPlayer(seat, token, name){return {seat:seat, token:token, name:normName(name,'P'+(seat+1)), joinedAt:nowIso()};}
+function detectSeat(st, token){var t=String(token||'');var ps=st.players||[];for(var i=0;i<ps.length;i++) if(String(ps[i].token)===t) return ps[i].seat;return -1;}
+function ensureTurn(st,seat){if(seat<0)throw new Error('参加者のみ操作できます。');if(seat!==st.turnSeat)throw new Error('あなたの手番ではありません。');}
+function ensurePlaying(st){if(st.status!=='playing')throw new Error('ゲームは進行中ではありません。');}
+function playerBySeat(st, seat){var ps=st.players||[];for(var i=0;i<ps.length;i++) if(ps[i].seat===seat) return ps[i];return null;}
+function getHand(st,seat){st.hands=st.hands||{};var k=String(seat);if(!st.hands[k])st.hands[k]=[];return st.hands[k];}
+function normName(n,fb){var v=String(n||'').trim().slice(0,20);return v||fb||'プレイヤー';}
+function mkLog(kind,text){return {at:nowIso(),kind:kind,text:text};}
+function pushLog(st,kind,text){st.logs=st.logs||[];st.logs.push(mkLog(kind,text));}
+function trimLogs(st){if(st.logs&&st.logs.length>500) st.logs=st.logs.slice(st.logs.length-500);}
+function birdLabel(type){var info=BIRDS[type];return info?(info.emoji+' '+info.name):type;}
+
+function buildView(st, token){
+  st = st||{};
+  var seat = detectSeat(st, token);
+  var activeSeat = st.status==='playing'?st.turnSeat:-1;
+  var players = (st.players||[]).map(function(p){
+    var coll = ((st.collections||{})[String(p.seat)]||[]).slice().sort(sortByType);
+    return {
+      seat:p.seat, name:p.name,
+      handCount: ((st.hands||{})[String(p.seat)]||[]).length,
+      collectionCount: coll.length,
+      collection: coll.map(function(c){return {t:c.t};}),
+      isTurn: p.seat===activeSeat, isYou: p.seat===seat
+    };
+  });
+  // ★常に種類順ソート
+  var myHand = seat>=0 ? ((st.hands||{})[String(seat)]||[]).slice().sort(sortByType).map(toClientCard) : [];
+  var myCollection = seat>=0 ? ((st.collections||{})[String(seat)]||[]).slice().sort(sortByType).map(toClientCard) : [];
+  var rows = (st.rows||[[],[],[],[]]).map(function(r){return (r||[]).map(toClientCard);});
+  var canOperate = seat>=0 && st.status==='playing' && seat===activeSeat;
+
+  var handCounts = {};
+  if(seat>=0){
+    var h = (st.hands||{})[String(seat)]||[];
+    for(var i=0;i<h.length;i++) handCounts[h[i].t]=(handCounts[h[i].t]||0)+1;
+  }
+  var possibleFlocks = [];
+  var ks = Object.keys(handCounts);
+  for(var j=0;j<ks.length;j++){
+    var bt=ks[j], cnt=handCounts[bt], info=BIRDS[bt];
+    if(cnt>=info.small){
+      possibleFlocks.push({birdType:bt, count:cnt, canSmall:cnt>=info.small, canLarge:cnt>=info.large, smallReq:info.small, largeReq:info.large});
+    }
+  }
+  return {
+    ok:true, roomId:st.roomId, updatedAt:st.updatedAt,
+    status:st.status||'waiting', createdAt:st.createdAt, startedAt:st.startedAt, finishedAt:st.finishedAt,
+    settings:st.settings||{maxPlayers:4}, seat:seat, seatLabel: seat>=0?'P'+(seat+1):'観戦',
+    canOperate:canOperate, players:players,
+    myHand:myHand, myCollection:myCollection, handBirdCounts:handCounts,
+    rows:rows, deckCount:(st.deck||[]).length, discardCount:(st.discard||[]).length,
+    turnSeat:st.turnSeat, turnPlayerName:playerName(st, st.turnSeat),
+    turnPhase:st.turnPhase||'place', sandwichResult:st.sandwichResult||'',
+    resultSummary:st.resultSummary||'', winnerSeat:st.winnerSeat, winCondition:st.winCondition||'',
+    possibleFlocks:possibleFlocks,
+    logs:(st.logs||[]).slice(Math.max(0,(st.logs||[]).length-LOG_TAIL)),
+    message:buildMessage(st)
+  };
+}
+
+function buildMessage(st){
+  if(st.status==='waiting') return '参加者が2人以上そろったら開始できます。';
+  if(st.status==='ended') return st.resultSummary||'ゲーム終了';
+  var name = playerName(st, st.turnSeat);
+  var ph = st.turnPhase;
+  if(ph==='place') return name+' のターン：鳥カードを選んで列に配置してください。';
+  if(ph==='draw_or_pass') return name+' のターン：山札から2枚引くか、パスしてください。';
+  if(ph==='flock') return name+' のターン：群れを公開するか、スキップしてください。';
+  return name+' のターンです。';
+}
+function playerName(st,seat){var p=playerBySeat(st,seat);return p?p.name:'-';}
+function toClientCard(c){var info=BIRDS[c.t]||{};return {id:c.id, type:c.t, name:info.name||c.t, emoji:info.emoji||'🐦', color:info.color||'#888', small:info.small||0, large:info.large||0};}
+
+function sortByType(a,b){var ai=BK.indexOf(a.t), bi=BK.indexOf(b.t);if(ai!==bi) return ai-bi;return String(a.id).localeCompare(String(b.id));}
+
+/* ============================================================
+   Rendering
+   ============================================================ */
+function renderAll(){rMeta();rPlayers();rTable();rPhase();rHand();rLogs();rBtns();}
+
+function rMeta(){
+  var r=S.room;
+  E.pillRoom.textContent='部屋: '+(S.roomId||'-');
+  E.roomInput.value=S.roomId||'';
+  E.pillSeat.textContent='席: '+(r?r.seatLabel:'-');
+  E.pillTurn.textContent='手番: '+(r?r.turnPlayerName||'-':'-');
+  E.pillPhase.textContent='フェーズ: '+(r&&r.turnPhase?PH[r.turnPhase]||r.turnPhase:'-');
+  E.pillDeck.textContent='山札: '+(r?r.deckCount:0);
+  E.pillDiscard.textContent='捨て: '+(r?r.discardCount:0);
+  E.pillStatus.textContent=stTxt(r?r.status:'waiting');
+  E.statusMsg.textContent=r?r.message:'部屋を作成するか、参加してください。';
+}
+
+function rPlayers(){
+  E.playerRow.innerHTML='';
+  var ps=S.room?S.room.players:[];
+  if(!ps.length){E.playerRow.innerHTML='<div class="pc"><div class="nm">まだいません</div></div>';return;}
+  ps.forEach(function(p){
+    var d=document.createElement('div');d.className='pc'+(p.isTurn?' act':'');
+    var ch='<div class="collRow">';
+    var grouped={};
+    (p.collection||[]).forEach(function(c){grouped[c.t]=(grouped[c.t]||0)+1;});
+    BK.forEach(function(bt){
+      var cnt=grouped[bt]||0;if(!cnt)return;
+      var info=BIRDS[bt];
+      for(var i=0;i<cnt;i++) ch+='<div class="cBadge" style="background:'+esc(info.color)+'" title="'+esc(info.name)+'">'+esc(info.emoji)+'</div>';
+    });
+    ch+='</div>';
+    var types=Object.keys(grouped).length;
+    var big3=0;for(var k in grouped) if(grouped[k]>=3) big3++;
+    var prog='('+types+'/7種';if(big3) prog+=' | '+big3+'/2セット×3枚';prog+=')';
+    d.innerHTML='<div class="nm">'+(p.isYou?'⭐ ':'')+esc(p.name)+'</div><div class="inf">手札'+p.handCount+'枚 / コレクション'+p.collectionCount+'枚 '+prog+'</div>'+ch+'<div class="inf">'+(p.isTurn?'🟢手番':'⏳待機')+'</div>';
+    E.playerRow.appendChild(d);
+  });
+}
+
+function rTable(){
+  E.rowsCont.innerHTML='';
+  var rows=S.room?S.room.rows:[[],[],[],[]];
+  var canOp=S.room&&S.room.canOperate&&S.room.turnPhase==='place'&&!S.pending;
+  rows.forEach(function(row,ri){
+    var w=document.createElement('div');w.className='rowWrap';
+    w.innerHTML='<div class="rowLbl">列'+(ri+1)+' ('+row.length+'枚)</div>';
+    var rd=document.createElement('div');rd.className='tRow';
+    if(canOp){var lb=mk('button','sBtn'+(S.selRow===ri&&S.selSide==='left'?' sel':''));lb.textContent='◀';lb.onclick=function(){S.selRow=ri;S.selSide='left';rTable();rPhase();};rd.appendChild(lb);}
+    row.forEach(function(c){var cd=mk('div','tc');cd.style.background=c.color;cd.innerHTML='<span>'+esc(c.emoji)+'</span><span class="tcF">小'+c.small+'/大'+c.large+'</span><div class="tip">'+esc(c.name)+'</div>';rd.appendChild(cd);});
+    if(canOp){var rb=mk('button','sBtn'+(S.selRow===ri&&S.selSide==='right'?' sel':''));rb.textContent='▶';rb.onclick=function(){S.selRow=ri;S.selSide='right';rTable();rPhase();};rd.appendChild(rb);}
+    w.appendChild(rd);E.rowsCont.appendChild(w);
+  });
+}
+
+function rPhase(){
+  var r=S.room;
+  if(!r||!r.canOperate||r.status!=='playing'){E.phaseBox.classList.remove('show');return;}
+  E.phaseBox.classList.add('show');
+  var ph=r.turnPhase;E.phT.textContent=PH[ph]||ph;E.phC.innerHTML='';
+  if(ph==='place'){
+    E.phD.textContent='手札から1種類の鳥を選び、列の◀左/右▶に全枚配置（同種で挟むと獲得）';
+    var bd=mk('div','birdSel');
+    var cts=r.handBirdCounts||{};
+    Object.keys(cts).sort(function(a,b){return BK.indexOf(a)-BK.indexOf(b);}).forEach(function(bt){
+      var info=BIRDS[bt]||{};
+      var b=mk('button','bBtn'+(S.selBird===bt?' sel':''));
+      b.style.background=info.color;b.textContent=info.emoji+' '+info.name+' ×'+cts[bt]+' (小'+info.small+'/大'+info.large+')';
+      b.disabled=S.pending;
+      b.onclick=function(){S.selBird=bt;rPhase();rHand();};
+      bd.appendChild(b);
+    });
+    E.phC.appendChild(bd);
+    if(S.selBird&&S.selRow>=0&&S.selSide){
+      var s=mk('div','');s.style.cssText='margin-top:8px;font-size:13px;font-weight:800;color:#92400e';
+      var si=BIRDS[S.selBird]||{};s.textContent='▶ '+si.emoji+' '+si.name+' ×'+(cts[S.selBird]||0)+' → 列'+(S.selRow+1)+'('+(S.selSide==='left'?'左':'右')+')';
+      E.phC.appendChild(s);
+    }
+    var pb=mk('button','bp');pb.textContent='配置する';pb.disabled=!S.selBird||S.selRow<0||!S.selSide||S.pending;pb.style.marginTop='8px';pb.onclick=doPlace;E.phC.appendChild(pb);
+  }else if(ph==='draw_or_pass'){
+    E.phD.textContent='挟みなし → 山札から2枚引くか、パス';
+    var dw=mk('div','');dw.style.cssText='display:flex;gap:8px';
+    var db=mk('button','bok');db.textContent='2枚引く';db.disabled=S.pending;db.onclick=function(){doDP('draw');};
+    var pp=mk('button','bd');pp.textContent='パス';pp.disabled=S.pending;pp.onclick=function(){doDP('pass');};
+    dw.appendChild(db);dw.appendChild(pp);E.phC.appendChild(dw);
+  }else if(ph==='flock'){
+    E.phD.textContent='群れを公開してコレクション追加（任意 / 1手番1回）';
+    var fks=r.possibleFlocks||[];
+    if(fks.length){
+      var fd=mk('div','flkSel');
+      fks.sort(function(a,b){return BK.indexOf(a.birdType)-BK.indexOf(b.birdType);}).forEach(function(f){
+        var info=BIRDS[f.birdType]||{};
+        if(f.canLarge){var bl=mk('button','fBtn'+(S.selFlock===f.birdType&&S.selFlockSz==='large'?' sel':''));bl.style.background=info.color;bl.disabled=S.pending;bl.textContent=info.emoji+' '+info.name+' 大群れ('+f.count+'/'+f.largeReq+') →2枚';bl.onclick=function(){S.selFlock=f.birdType;S.selFlockSz='large';rPhase();};fd.appendChild(bl);}
+        if(f.canSmall){var bs=mk('button','fBtn'+(S.selFlock===f.birdType&&S.selFlockSz==='small'?' sel':''));bs.style.background=info.color;bs.disabled=S.pending;bs.textContent=info.emoji+' '+info.name+' 小群れ('+f.count+'/'+f.smallReq+') →1枚';bs.onclick=function(){S.selFlock=f.birdType;S.selFlockSz='small';rPhase();};fd.appendChild(bs);}
+      });
+      E.phC.appendChild(fd);
+    }
+    var ww=mk('div','');ww.style.cssText='display:flex;gap:8px;margin-top:8px';
+    var rb2=mk('button','bok');rb2.textContent='群れ公開';rb2.disabled=!S.selFlock||S.pending;rb2.onclick=doFlock;
+    var sk=mk('button','bd');sk.textContent='スキップ';sk.disabled=S.pending;sk.onclick=function(){S.selFlock='skip';S.selFlockSz='';doFlock();};
+    ww.appendChild(rb2);ww.appendChild(sk);E.phC.appendChild(ww);
+  }
+}
+
+function rHand(){
+  E.handScr.innerHTML='';
+  var r=S.room;var hand=r?r.myHand||[]:[];
+  E.hCnt.textContent=hand.length;
+  E.hHelp.textContent=hand.length?'🐦 種類順':'手札なし';
+  if(!hand.length){E.handScr.innerHTML='<div style="color:rgba(255,255,255,.5);font-size:13px;padding:8px">手札はありません</div>';return;}
+  var cts={};hand.forEach(function(c){cts[c.type]=(cts[c.type]||0)+1;});
+  hand.forEach(function(c){
+    var b=mk('button','hc'+(S.selBird===c.type&&r&&r.turnPhase==='place'?' sel':''));
+    b.style.background=c.color;
+    b.innerHTML='<span class="hE">'+esc(c.emoji)+'</span><span class="hN">'+esc(c.name)+'</span><span class="hI">小'+c.small+' / 大'+c.large+'</span><span class="hCnt">×'+(cts[c.type]||1)+'</span>';
+    b.title=c.name;
+    b.disabled=S.pending;
+    b.onclick=function(){if(r&&r.canOperate&&r.turnPhase==='place'&&!S.pending){S.selBird=c.type;rPhase();rHand();}};
+    E.handScr.appendChild(b);
+  });
+}
+
+function rLogs(){
+  E.logList.innerHTML='';
+  var logs=S.room?S.room.logs||[]:[];
+  if(!logs.length){E.logList.innerHTML='<div class="logI"><div class="lt">ログなし</div></div>';return;}
+  logs.slice().reverse().forEach(function(l){
+    var d=mk('div','logI');d.innerHTML='<div class="lt">'+esc(l.text)+'</div><div class="ls">'+esc(fmtT(l.at))+'</div>';
+    E.logList.appendChild(d);
+  });
+}
+
+function rBtns(){
+  var r=S.room;var j=r&&r.seat>=0;
+  E.copyBtn.disabled=!S.roomId;
+  E.startBtn.disabled=!(j&&r&&r.status==='waiting'&&r.players.length>=2)||S.pending;
+  E.resetBtn.disabled=!j||S.pending;
+}
+
+function maybeRes(){
+  var r=S.room;if(!r||r.status!=='ended'||!r.finishedAt)return;
+  var key=r.finishedAt+r.resultSummary;if(S.shownRes===key)return;S.shownRes=key;
+  E.resT.textContent='🏆 ゲーム終了';
+  var condText=r.winCondition==='7types'?'勝利条件: 7種類の鳥を1枚ずつコレクション達成':r.winCondition==='2x3'?'勝利条件: 2種類の鳥を3枚以上ずつコレクション達成':'';
+  E.resB.textContent=(r.resultSummary||'終了')+(condText?'\n'+condText:'');
+  E.resOv.classList.add('show');
+}
+
+function cpRoom(){if(!S.roomId)return;navigator.clipboard.writeText(S.roomId).then(function(){tst('コピー！');}).catch(function(){tst('失敗');});}
+function setTab(t){E.tabLog.classList.toggle('act',t==='log');E.tabRule.classList.toggle('act',t==='rule');E.logPane.style.display=t==='log'?'':'none';E.rulePane.style.display=t==='rule'?'':'none';}
+
+/* ★修正: pen(false) 時にも全再描画 (フェーズボタンの disabled 属性を即時更新) */
+function pen(f){
+  S.pending=f;
+  E.createBtn.disabled=f;
+  E.joinBtn.disabled=f;
+  // ★ S.pending 変化後は常に再描画 (フェーズボタンの disabled を正しく反映)
+  if(S.room) { rTable(); rPhase(); rHand(); }
+  rBtns();
+}
+
+function hErr(e){
+  pen(false);
+  var msg = e&&e.message?e.message:'エラー';
+  if(msg.indexOf('permission')>=0||msg.indexOf('PERMISSION')>=0) msg='Firebase権限エラー: ルール設定を確認してください';
+  tst(msg); console.error(e);
+}
+function tst(m){E.toast.textContent=m;E.toast.classList.add('show');clearTimeout(tst._t);tst._t=setTimeout(function(){E.toast.classList.remove('show');},2600);}
+function stTxt(s){return ({waiting:'待機中',playing:'対戦中',ended:'終了'})[s]||s||'-';}
+function fmtT(iso){if(!iso)return'-';try{return new Date(iso).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}catch(e){return iso;}}
+function esc(s){var d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML;}
+function mk(tag,cls){var e=document.createElement(tag);if(cls)e.className=cls;return e;}
+</script>
+</body>
+</html>
