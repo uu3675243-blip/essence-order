@@ -1,0 +1,1089 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Essence Order : The Last Note</title>
+<style>
+:root{--bg:#100d08;--bg2:#1a160e;--parch:#f5f0e1;--text:#3d2b1f;--mut:#8b7355;--gold:#d4a843;--gold2:#c9953a;--dk:#2a1f14;--dn:#9b2c2c;--sh:0 6px 20px rgba(0,0,0,.3)}
+*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100vh}
+body{font-family:"Hiragino Mincho ProN","Yu Mincho","serif";color:#e8dcc8;background:radial-gradient(ellipse at 20% 10%,#1f1a12,var(--bg)),var(--bg)}
+button,input,select{font-family:inherit}
+.sh{max-width:960px;margin:0 auto;padding:10px}
+.top{background:rgba(42,31,20,.85);border:1px solid rgba(212,168,67,.2);border-radius:12px;padding:10px 14px;margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.top h1{font-size:17px;color:var(--gold);margin-right:auto;letter-spacing:.05em}
+.top input,.top select{height:30px;border-radius:6px;border:1px solid rgba(212,168,67,.3);background:rgba(255,255,255,.06);color:#e8dcc8;padding:0 8px;font-size:12px;width:100px}.top select{width:55px}
+button{appearance:none;border:none;height:32px;padding:0 12px;border-radius:6px;font-weight:700;cursor:pointer;font-size:11px;transition:.06s;letter-spacing:.03em}button:hover{transform:translateY(-1px)}button:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.bg{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--dk)}.bd{background:var(--dk);color:var(--gold);border:1px solid rgba(212,168,67,.3)}.bo{background:#2d6a4f;color:#fff}.br{background:var(--dn);color:#fff}
+.pills{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}.pl{padding:3px 8px;border-radius:99px;background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.15);font-size:10px;color:var(--gold)}
+.msg{background:rgba(42,31,20,.9);border:1px solid rgba(212,168,67,.25);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--gold);margin-bottom:8px}
+.pRow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.pc{flex:1 1 140px;padding:8px 10px;border-radius:10px;background:rgba(42,31,20,.7);border:1px solid rgba(212,168,67,.15)}.pc.act{border-color:var(--gold);box-shadow:0 0 8px rgba(212,168,67,.3)}.pc .nm{font-size:13px;font-weight:700;color:var(--gold)}.pc .inf{font-size:10px;color:rgba(232,220,200,.5);margin-top:2px}
+.fieldBox{background:var(--parch);color:var(--text);border-radius:14px;box-shadow:var(--sh);padding:14px;margin-bottom:8px}
+.fieldBox h2{font-size:14px;margin-bottom:8px;color:var(--dk)}
+.slots{display:flex;justify-content:center;gap:14px;margin-bottom:6px}
+.slot{width:96px;min-height:140px;border-radius:12px;border:2px dashed rgba(139,115,85,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:.15s;padding:8px;background:rgba(255,252,245,.6);position:relative}
+.slot.sel{border-color:var(--gold);background:rgba(212,168,67,.12);box-shadow:0 0 0 3px rgba(212,168,67,.2)}
+.slot .sLbl{font-size:9px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.slot .sEmoji{font-size:32px}.slot .sNum{font-size:24px;font-weight:900}.slot .sName{font-size:10px;color:var(--mut)}
+.slot .sStack{position:absolute;bottom:4px;right:6px;font-size:9px;color:var(--dn);font-weight:700}
+.comboLbl{font-size:12px;font-weight:700;color:#6b21a8}
+.phBox{background:rgba(42,31,20,.92);border:1px solid rgba(212,168,67,.3);border-radius:10px;padding:12px;margin-bottom:8px;display:none;color:#e8dcc8}.phBox.show{display:block}
+.phT{font-size:12px;font-weight:700;color:var(--gold);margin-bottom:3px}.phD{font-size:11px;color:rgba(232,220,200,.6);margin-bottom:8px}
+.actRow{display:flex;flex-wrap:wrap;gap:6px}
+.handBox{margin-bottom:8px}.handH{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}.handH .t{font-size:15px;font-weight:700;color:var(--gold)}.handH .s{font-size:10px;color:rgba(232,220,200,.4)}
+.handScr{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.hc{flex:0 0 62px;height:86px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#fff;font-weight:700;cursor:pointer;border:2px solid transparent;transition:.12s;user-select:none;overflow:hidden;padding:4px 2px;position:relative}
+.hc .hE{font-size:11px;line-height:1;opacity:.9}.hc .hN{font-size:20px;font-weight:900;line-height:1}.hc .hL{font-size:8px;opacity:.7;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.hc.sel{transform:translateY(-6px);border-color:var(--gold);box-shadow:0 8px 20px rgba(212,168,67,.3)}
+.hc.excl{border-color:var(--dn);box-shadow:0 0 0 2px rgba(155,44,44,.5)}
+.hc.banned{opacity:.5;filter:grayscale(.4)}
+.cR{background:linear-gradient(135deg,#c0392b,#96281b)}.cB{background:linear-gradient(135deg,#2874a6,#1b4f72)}.cY{background:linear-gradient(135deg,#b7950b,#7d6608)}.cG{background:linear-gradient(135deg,#1e8449,#145a32)}.cP{background:linear-gradient(135deg,#2c2c3a,#1a1a2e)}
+.btmBox{background:var(--parch);color:var(--text);border-radius:14px;box-shadow:var(--sh);padding:12px}
+.tabH{display:flex;gap:4px;margin-bottom:8px}.tabB{height:26px;border-radius:5px;font-size:10px;font-weight:700;padding:0 10px;background:rgba(139,115,85,.15);color:var(--mut);border:none;cursor:pointer}.tabB.act{background:var(--gold);color:var(--dk)}
+.logScr{max-height:350px;overflow:auto;display:grid;gap:4px}
+.logI{padding:5px 8px;border-radius:6px;background:rgba(245,240,225,.7);border:1px solid rgba(139,115,85,.2)}.logI .lt{font-size:11px;font-weight:700;color:var(--dk)}.logI .ls{font-size:9px;color:var(--mut)}
+.ruleW{font-size:12px;line-height:1.8;color:var(--text)}.ruleW h3{font-size:13px;margin:8px 0 3px;color:var(--dk)}.ruleW table{width:100%;border-collapse:collapse;font-size:11px;margin:6px 0}.ruleW th,.ruleW td{padding:4px 6px;border:1px solid rgba(139,115,85,.3);text-align:center}.ruleW th{background:rgba(212,168,67,.15);color:var(--dk)}
+.toast{position:fixed;right:10px;bottom:10px;z-index:1000;background:rgba(26,22,14,.95);color:var(--gold);padding:8px 12px;border-radius:8px;border:1px solid rgba(212,168,67,.3);opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;max-width:300px;font-size:12px}.toast.show{opacity:1;transform:translateY(0)}
+.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:12px;background:rgba(0,0,0,.6);z-index:999}.ov.show{display:flex}.modal{width:min(440px,100%);background:var(--parch);color:var(--text);border-radius:14px;box-shadow:var(--sh);padding:18px}.modal h3{color:var(--dk);margin-bottom:6px}.modal p{color:var(--mut);margin-bottom:12px;line-height:1.7;font-size:13px}
+@media(max-width:600px){.top{flex-direction:column;align-items:stretch}.top h1{text-align:center;margin-bottom:4px}.top input,.top select{width:100%}.slot{width:80px;min-height:116px}.slot .sEmoji{font-size:26px}.slot .sNum{font-size:20px}.hc{flex:0 0 54px;height:76px}.hc .hN{font-size:17px}}
+</style></head><body>
+<div class="sh">
+<div class="top">
+  <h1>🧪 Essence Order : The Last Note</h1>
+  <input id="pName" type="text" maxlength="20" placeholder="調香師名">
+  <select id="maxP"></select>
+  <input id="rInput" type="text" maxlength="12" placeholder="部屋番号">
+  <button class="bg" id="cBtn">工房作成</button><button class="bd" id="jBtn">参加</button><button class="bd" id="cpBtn" disabled>📋</button>
+  <button class="bo" id="sBtn" disabled>調合開始</button><button class="br" id="rsBtn" disabled>初期化</button>
+  <span class="pl" id="plRoom">-</span><span class="pl" id="plSeat">-</span>
+</div>
+<div class="pills"><span class="pl" id="plTurn">手番:-</span><span class="pl" id="plPhase">-</span><span class="pl" id="plDeck">山:0</span><span class="pl" id="plDisc">捨:0</span><span class="pl" id="plExcl">除:0</span><span class="pl" id="plBan" style="display:none">🚫-</span></div>
+<div class="msg" id="msg">🧪 工房を作成 or 参加</div>
+<div class="pRow" id="pRow"></div>
+<div class="fieldBox"><h2>🌸 香りのノート <span id="comboLbl" class="comboLbl"></span></h2><div class="slots" id="slots"></div></div>
+<div class="phBox" id="phBox"><div class="phT" id="phT">-</div><div class="phD" id="phD">-</div><div class="actRow" id="phC"></div></div>
+<div class="handBox"><div class="handH"><div class="t">📜 手札 <span id="hCnt">0</span>枚</div><div class="s" id="hHelp">-</div></div><div class="handScr" id="handScr"></div></div>
+<div class="btmBox">
+  <div class="tabH"><button id="tLog" class="tabB act">調合記録</button><button id="tRule" class="tabB">ルールブック</button></div>
+  <div id="logP"><div class="logScr" id="logL"></div></div>
+  <div id="ruleP" style="display:none"><div class="ruleW">
+    <h3>⚗️ アクション</h3><p><b>A.調合:</b> 手札1〜3枚→1枚除外+残りで場入替→役判定(手札−1)。<br><b>B.補充:</b> 山札1枚。毒ならターン終了。<br><b>C.揮発:</b> 禁止色カード1枚捨て+2枚ドロー(手札+1)。</p>
+    <h3>🎵 役</h3><table><tr><th>役</th><th>条件</th><th>効果</th></tr>
+    <tr><td>モノトーン</td><td>同色3枚</td><td>次プレイヤー2枚ドロー</td></tr>
+    <tr><td>グラデーション</td><td>同色+連番</td><td>追加1枚除外(素材のみ)</td></tr>
+    <tr><td>ハーモニー</td><td>全色異なる</td><td>毒薬を渡す/場設置</td></tr>
+    <tr><td>エッセンス</td><td>同数字</td><td>場リセット+禁止色+場毒薬譲渡可</td></tr></table>
+    <h3>☠️ 毒薬</h3><p>所持中勝利不可。引くとターン終了。<br><b>デトックス:</b> 2枚→両方除外+1枚ドロー+バリア。<br><b>処分方法:</b> ハーモニー/エッセンス/デトックスのみ。<br><b>グラデーション追加除外で毒薬は選択不可。</b></p>
+    <h3>🚫 禁止色</h3><p>エッセンスで指定。1周で自動解除。他のエッセンスで上書き解除。<br><b>揮発:</b> 禁止色カード1枚捨て(役不要)+山札2枚ドロー。</p>
+    <h3>🍷 スポット・ポイズン熟成</h3><p>場に毒薬がある間、毎ターン終了時に山札1枚が下に蓄積。<br>そのスロットを利用した人は毒薬+蓄積カード全取得。<br>エッセンスで場毒薬を他人に渡す場合、蓄積カードは捨て札へ。</p>
+  </div></div>
+</div></div>
+<div id="toast" class="toast"></div>
+<div id="resOv" class="ov"><div class="modal"><h3 id="resT">🏆</h3><p id="resB">-</p><button class="bd" id="resX">閉じる</button></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Essence Order : The Last Note — Firebase Edition
+   サーバー側(Code.gs)のロジックをクライアント側に完全移植。
+   Firebase Realtime Database でルーム状態を同期し、
+   ト   ンザクションで排他制御を行います。
+   ルール・動作は一切変更しません。
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Firebase 初期化 ─── */
+const firebaseConfig = {
+  apiKey: "AIzaSyD7vPbOVPCOXF9ywfAG739X0-Z1JX-uzeY",
+  authDomain: "essence-order.firebaseapp.com",
+  databaseURL: "https://essence-order-default-rtdb.firebaseio.com",
+  projectId: "essence-order",
+  storageBucket: "essence-order.firebasestorage.app",
+  messagingSenderId: "147580130581",
+  appId: "1:147580130581:web:ea2b530a3beb050364451c"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ─── 定数 (Code.gs と同一) ─── */
+const HAND_SIZE = 7;
+const FIELD_N   = 3;
+const LOG_MAX   = 160;
+const COLORS    = ['R','B','Y','G'];
+const CMETA = {
+  R:{name:'フローラル',e:'🌹'}, B:{name:'ハーバル',e:'🌿'},
+  Y:{name:'スパイシー',e:'🌶️'},G:{name:'ウッディ',e:'🌲'},
+  P:{name:'毒薬',e:'☠️'}
+};
+const SLOTS = ['TOP','MIDDLE','BASE'];
+
+/* ─── UI 用定数 ─── */
+var CN={R:'フローラル',B:'ハーバル',Y:'スパイシー',G:'ウッディ',P:'毒薬'};
+var CE={R:'🌹',B:'🌿',Y:'🌶️',G:'🌲',P:'☠️'};
+var CC={R:'cR',B:'cB',Y:'cY',G:'cG',P:'cP'};
+var SN=['TOP','MIDDLE','BASE'];
+var PHL={choose:'アクション選択',restock_chain:'補充後',pending_draw:'強制ドロー',grad_extra:'グラデ除外',harmony_act:'ハーモニー',essence_setup:'エッセンス'};
+var SK={token:'eo3_tk',roomId:'eo3_rm',name:'eo3_nm'};
+
+/* ─── グローバル状態 ─── */
+var S={token:ldTk(),roomId:localStorage.getItem(SK.roomId)||'',name:localStorage.getItem(SK.name)||'',room:null,ref:null,tab:'log',pend:false,shown:null,selCards:[],exclId:'',selSlots:[],selFlock:'',selBan:'',selPoisonTarget:-1};
+var E={};
+['pName','maxP','rInput','cBtn','jBtn','cpBtn','sBtn','rsBtn','plRoom','plSeat','plTurn','plPhase','plDeck','plDisc','plExcl','plBan','msg','pRow','slots','comboLbl','phBox','phT','phD','phC','hCnt','hHelp','handScr','tLog','tRule','logP','ruleP','logL','toast','resOv','resT','resB','resX'].forEach(function(id){E[id]=document.getElementById(id);});
+
+init();
+
+function init(){
+  for(var i=2;i<=4;i++){var o=document.createElement('option');o.value=i;o.textContent=i+'人';E.maxP.appendChild(o);}
+  E.maxP.value='4';
+  E.pName.value=S.name;
+  var rp=new URL(location.href).searchParams.get('room');if(rp)S.roomId=rp.toUpperCase();
+  E.rInput.value=S.roomId;
+  bindEv();
+  renderAll();
+  if(S.roomId&&S.token) subscribe(S.roomId);
+}
+
+function bindEv(){
+  E.pName.addEventListener('change',svN);
+  E.cBtn.addEventListener('click',createRoom);
+  E.jBtn.addEventListener('click',function(){joinRoom((E.rInput.value||'').trim().toUpperCase(),true);});
+  E.cpBtn.addEventListener('click',cpR);
+  E.sBtn.addEventListener('click',startGame);
+  E.rsBtn.addEventListener('click',resetRoom);
+  E.tLog.addEventListener('click',function(){setTab('log');});
+  E.tRule.addEventListener('click',function(){setTab('rule');});
+  E.resX.addEventListener('click',function(){E.resOv.classList.remove('show');});
+}
+
+function ldTk(){var t=localStorage.getItem(SK.token);if(!t){t='eo3_'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem(SK.token,t);}return t;}
+function svN(){S.name=(E.pName.value||'').trim().slice(0,20);localStorage.setItem(SK.name,S.name);}
+
+/* ═══════════════════════════════════════════════════════════════
+   Firebase 同期 (google.script.run の代替)
+   ═══════════════════════════════════════════════════════════════ */
+
+function subscribe(roomId){
+  if(S.ref) S.ref.off();
+  S.ref = db.ref('rooms/'+roomId);
+  S.ref.on('value', function(snap){
+    var data = snap.val();
+    if(!data){ /* 部屋削除／存在せず */ return; }
+    S.roomId = roomId;
+    localStorage.setItem(SK.roomId, roomId);
+    var resp = buildResp(data, S.token);
+    apply(resp);
+  }, function(err){
+    console.error('DB error', err);
+    tst('接続エラー: '+err.message);
+  });
+}
+
+/* トランザクションで書き込む汎用ヘルパー */
+function mutateRoom(roomId, mutateFn){
+  return db.ref('rooms/'+roomId).transaction(function(room){
+    if(room===null) return; // リトライ回避
+    try{
+      mutateFn(room);
+      room.updatedAt = String(Date.now());
+      return room;
+    }catch(e){
+      // エラーはトランザクション外で通知するため、throw せずに戻す
+      room.__lastError = e.message || 'エラー';
+      return room;
+    }
+  }, function(err, committed, snap){
+    if(err){ console.error(err); tst('書き込み失敗'); return; }
+    var v = snap && snap.val();
+    if(v && v.__lastError){
+      tst(v.__lastError);
+      // エラーメッセージは次回更新でクリア
+      db.ref('rooms/'+roomId+'/__lastError').remove();
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Public API (Code.gs を完全移植)
+   ═══════════════════════════════════════════════════════════════ */
+
+function createRoom(){
+  svN();
+  var name = normName(S.name, '調香師1');
+  var cfg = normCfg({maxPlayers:Number(E.maxP.value||4)});
+  pen(1);
+  // ランダム ID を生成して存在確認→なければ作成
+  tryCreate(0);
+  function tryCreate(attempt){
+    if(attempt>=20){ pen(0); tst('ID生成失敗'); return; }
+    var rid = genRandomId();
+    db.ref('rooms/'+rid).transaction(function(cur){
+      if(cur) return; // 衝突→別 ID
+      var st = emptyState(rid, cfg, [{seat:'P1',token:S.token,name:name}]);
+      log_(st, name+' が参加しました');
+      return { roomId:rid, ownerToken:S.token, settings:cfg, state:st, updatedAt:String(Date.now()) };
+    }, function(err, committed){
+      if(err){ pen(0); tst('作成失敗'); return; }
+      if(!committed){ tryCreate(attempt+1); return; }
+      pen(0);
+      subscribe(rid);
+      tst('工房作成！ '+rid);
+    });
+  }
+}
+
+function joinRoom(roomId, showTst){
+  if(!roomId) return tst('番号入力');
+  svN();
+  var name = normName(S.name, '調香師');
+  pen(1);
+  var newToken = S.token;
+  db.ref('rooms/'+roomId).transaction(function(room){
+    if(!room){ room=null; return; }
+    var cfg = room.settings || {};
+    var st = parseState(room.state);
+    if(st.status!=='waiting'){ room.__lastError='対局開始後は参加できません'; return room; }
+    if(st.players.length >= Number(cfg.maxPlayers||4)){ room.__lastError='満席です'; return room; }
+    // 既に参加済みなら何もしない
+    var exist = (st.players||[]).find(function(p){return p.token===S.token;});
+    if(!exist){
+      var seat = 'P'+(st.players.length+1);
+      st.players.push({seat:seat,token:S.token,name:name,hand:[],barrierUntil:0,declared:''});
+      log_(st, name+' が参加しました');
+    }
+    room.state = st;
+    room.updatedAt = String(Date.now());
+    return room;
+  }, function(err, committed, snap){
+    pen(0);
+    if(err){ tst('参加失敗'); return; }
+    if(!snap.val()){ tst('ルームが見つかりません'); return; }
+    subscribe(roomId);
+    if(showTst) tst('参加！');
+  });
+}
+
+function startGame(){
+  if(!S.roomId) return;
+  pen(1);
+  mutateRoom(S.roomId, function(room){
+    var cfg = room.settings||{};
+    var st = parseState(room.state);
+    var seat = seatByTk(st, S.token);
+    if(!seat) throw new Error('参加者ではありません');
+    if(st.status!=='waiting') throw new Error('既に開始済み');
+    if(seat!=='P1') throw new Error('作成者のみ開始可能');
+    if(st.players.length<2) throw new Error('2人以上必要');
+    st.status='playing'; st.turnSeat='P1'; st.turnSerial=1;
+    st.deck=shuffle(createDeck()); st.discard=[]; st.excluded=[];
+    st.forceDraw=0; st.forceDrawSrc=''; st.bannedColor=''; st.bannedExpire=0;
+    st.phase='choose'; st.drewThisTurn=false; st.lastDrawn=null;
+    st.field=[0,1,2].map(function(i){return {slot:SLOTS[i],card:null,stack:[]};});
+    st.winnerSeat=''; st.resultSummary=''; st.finishedAt=''; st.logs=[];
+    st.players.forEach(function(p){p.hand=[];p.barrierUntil=0;p.declared='';});
+    for(var i=0;i<HAND_SIZE;i++) st.players.forEach(function(p){ drawToHand(st,p.seat,1,false); });
+    // 初期場札: 毒薬は除外して3枚並べる
+    var fieldIdx=0;
+    while(fieldIdx<FIELD_N){
+      var c=drawCard(st); if(!c)break;
+      if(c.c==='P'){ st.discard.push(c); }
+      else { st.field[fieldIdx]={slot:SLOTS[fieldIdx],card:c,stack:[]}; fieldIdx++; }
+    }
+    log_(st,'対局開始。'+seatName(st,'P1')+' の手番です');
+    room.state = st;
+  });
+  setTimeout(function(){pen(0);}, 100);
+}
+
+function resetRoom(){
+  if(!confirm('初期化？')) return;
+  pen(1);
+  mutateRoom(S.roomId, function(room){
+    var cfg = room.settings||{};
+    var st = parseState(room.state);
+    var seat = seatByTk(st, S.token);
+    if(!seat) throw new Error('参加者ではありません');
+    if(seat!=='P1') throw new Error('作成者のみリセット可能');
+    var players = st.players.map(function(p){return {seat:p.seat,token:p.token,name:p.name,hand:[],barrierUntil:0,declared:''};});
+    var ns = emptyState(room.roomId, cfg, players);
+    log_(ns,'ルームを初期化しました');
+    room.state = ns;
+  });
+  setTimeout(function(){pen(0);clr();}, 100);
+}
+
+/* ─── 補充 ─── */
+function doRestock(){
+  pen(1);
+  mutateRoom(S.roomId, function(room){
+    var st = parseState(room.state);
+    var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
+    assertTurn(st, seat); normalizeT(st);
+    if(st.phase!=='choose') throw new Error('補充は choose フェイズのみ');
+    if(st.drewThisTurn) throw new Error('既に補充済み');
+    var p = player(st, seat);
+    var c = drawCard(st); if(!c) throw new Error('山札なし');
+    st.lastDrawn=c.id; st.drewThisTurn=true;
+    if(c.c==='P'){
+      if(hasBarrier(p, st.turnSerial)){
+        st.discard.push(c); log_(st, seatName(st,seat)+' は毒薬を引いたが障壁で無効化');
+      } else {
+        p.hand.push(c); sortHand(p.hand);
+        log_(st, seatName(st,seat)+' は毒薬を引いた。ターン終了');
+      }
+      finishTurn(st, seat);
+      room.state = st;
+      return;
+    }
+    p.hand.push(c); sortHand(p.hand);
+    log_(st, seatName(st,seat)+' が補充→'+fmtCard(c));
+    st.phase='restock_chain';
+    room.state = st;
+  });
+  setTimeout(function(){pen(0);clr();}, 100);
+}
+
+/* ─── ターン終了 ─── */
+function doEndTurn(){
+  pen(1);
+  mutateRoom(S.roomId, function(room){
+    var st = parseState(room.state);
+    var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
+    assertTurn(st, seat); normalizeT(st);
+    log_(st, seatName(st,seat)+' ターン終了');
+    finishTurn(st, seat);
+    room.state = st;
+  });
+  setTimeout(function(){pen(0);clr();}, 100);
+}
+
+/* ─── 強制ドロー (モノトーン) ─── */
+function doPDraw(){
+  pen(1);
+  mutateRoom(S.roomId, function(room){
+    var st = parseState(room.state);
+    var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
+    assertTurn(st, seat); normalizeT(st);
+    if(st.phase!=='pending_draw'||st.forceDraw<=0) throw new Error('強制ドローフェイズではありません');
+    var cnt = st.forceDraw;
+    drawToHand(st, seat, cnt, true);
+    log_(st, seatName(st,seat)+' は'+st.forceDrawSrc+'で'+cnt+'枚補充');
+    st.forceDraw=0; st.forceDrawSrc='';
+    finishTurn(st, seat);
+    room.state = st;
+  });
+  setTimeout(function(){pen(0);clr();}, 100);
+}
+
+/* ─── 調合 ─── */
+function doBlend(){
+  if(!S.selCards.length) return tst('カード選択');
+  if(!S.exclId) return tst('除外指定(長押し/右クリック)');
+  var N = S.selCards.length;
+  if(S.selSlots.length !== N-1) return tst('スロット'+(N-1)+'箇所選択');
+  var payload = {cardIds:S.selCards.slice(), excludeId:S.exclId, slots:S.selSlots.slice()};
+  pen(1);
+  mutateRoom(S.roomId, function(room){
+    var st = parseState(room.state);
+    var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
+    assertTurn(st, seat); normalizeT(st);
+    if(st.phase!=='choose' && st.phase!=='restock_chain') throw new Error('調合不可フェイズ');
+    var p = player(st, seat);
+    var ids = uniq(payload.cardIds||[]);
+    var exId = String(payload.excludeId||'');
+    var tSlots = (payload.slots||[]).map(Number);
+    if(ids.length<1||ids.length>3) throw new Error('1〜3枚選択');
+    if(!exId||ids.indexOf(exId)<0) throw new Error('除外カード指定必須');
+    if(tSlots.length!==ids.length-1) throw new Error('スロット数不正');
+    if(hasDup(tSlots)||tSlots.some(function(v){return v<0||v>=FIELD_N;})) throw new Error('スロット不正');
+    var cards = ids.map(function(id){
+      var c = findCard(p.hand, id); if(!c) throw new Error('手札にないカード');
+      if(c.c==='P') throw new Error('毒薬は調合不可');
+      if(st.bannedColor&&c.c===st.bannedColor) throw new Error('禁色カードは調合不可');
+      return cloneO(c);
+    });
+    var exCard = findCard(cards, exId);
+    var remain = cards.filter(function(c){return c.id!==exId;});
+    var fCopy = cloneO(st.field);
+    remain.forEach(function(c,i){fCopy[tSlots[i]].card=cloneO(c);});
+    var combo = detectCombo(fCopy);
+    if(!combo.type) throw new Error('役が成立する調合のみ実行可能');
+
+    cards.forEach(function(c){removeCard(p.hand, c.id);});
+    st.excluded.push(exCard);
+    remain.forEach(function(c,i){
+      var si=tSlots[i]; var slot=st.field[si];
+      var picked=pickupSlot(st, seat, si);
+      picked.forEach(function(pc){if(pc.c==='P')receivePoison(st, seat, pc);else p.hand.push(pc);});
+      slot.card=cloneO(c); slot.stack=[];
+    });
+    sortHand(p.hand);
+    log_(st, seatName(st,seat)+' 調合→役「'+combo.label+'」成立');
+
+    /* combo effects */
+    if(combo.type==='MONOTONE'){
+      var nextS = nextSeat(st, seat);
+      st.forceDraw=2; st.forceDrawSrc='モノトーン';
+      log_(st,'モノトーン効果：次手番('+seatName(st,nextS)+')は2枚補充して終了');
+      checkWin(st, seat); if(st.status==='ended'){ room.state=st; return; }
+      finishTurn(st, seat);
+      st.phase='pending_draw';
+    } else if(combo.type==='GRADATION'){
+      checkWin(st, seat); if(st.status==='ended'){ room.state=st; return; }
+      if(p.hand.some(function(c){return c.c!=='P';})){
+        st.phase='grad_extra';
+      } else {
+        log_(st,'グラデーション効果：素材なしのため追加除外なし');
+        finishTurn(st, seat);
+      }
+    } else if(combo.type==='HARMONY'){
+      checkWin(st, seat); if(st.status==='ended'){ room.state=st; return; }
+      if(p.hand.some(function(c){return c.c==='P';})){
+        st.phase='harmony_act';
+      } else {
+        log_(st,'ハーモニー効果：毒薬なしのため効果なし');
+        finishTurn(st, seat);
+      }
+    } else if(combo.type==='ESSENCE'){
+      checkWin(st, seat); if(st.status==='ended'){ room.state=st; return; }
+      st.phase='essence_setup';
+    } else {
+      checkWin(st, seat); if(st.status==='ended'){ room.state=st; return; }
+      finishTurn(st, seat);
+    }
+    room.state = st;
+  });
+  setTimeout(function(){pen(0);clr();}, 100);
+}
+
+/* ─── グラデーション追加除外 ─── */
+function doGradEx(cardId){
+  pen(1);
+  mutateRoom(S.roomId, function(room){
+    var st = parseState(room.state);
+    var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
+    assertTurn(st, seat); normalizeT(st);
+    if(st.phase!=='grad_extra') throw new Error('グラデーション追加除外フェイズではありません');
+    var p = player(st, seat);
+    var c = findCard(p.hand, cardId); if(!c) throw new Error('カードなし');
+    if(c.c==='P') throw new Error('毒薬は追加除外不可');
+    removeCard(p.hand, c.id); st.excluded.push(c);
+    log_(st,'グラデーション追加除外→'+fmtCard(c));
+    checkWin(st, seat); if(st.status==='ended'){ room.state=st; return; }
+    finishTurn(st, seat);
+    room.state = st;
+  });
+  setTimeout(function(){pen(0);clr();}, 100);
+}
+
+/* ─── ハーモニー ─── */
+function doHarmony(action, targetSeat, slotIdx){
+  pen(1);
+  mutateRoom(S.roomId, function(room){
+    var st = parseState(room.state);
+    var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
+    assertTurn(st, seat); normalizeT(st);
+    if(st.phase!=='harmony_act') throw new Error('ハーモニーフェイズではありません');
+    var p = player(st, seat);
+    var poison = p.hand.find(function(c){return c.c==='P';});
+    if(!poison){log_(st,'ハーモニー効果：毒薬なし'); finishTurn(st, seat); room.state=st; return;}
+    removeCard(p.hand, poison.id);
+    action = String(action||'pass');
+    if(action==='spot'){
+      var si = Number(slotIdx); if(si<0||si>=FIELD_N) si=0;
+      var slot = st.field[si];
+      if(slot.card) st.discard.push(slot.card);
+      (slot.stack||[]).forEach(function(c){st.discard.push(c);});
+      slot.card=poison; slot.stack=[];
+      log_(st,'ハーモニー効果：毒薬を'+SLOTS[si]+'に設置');
+    } else {
+      var ts = validTarget(st, targetSeat, seat)||nextSeat(st, seat);
+      receivePoison(st, ts, poison);
+      log_(st,'ハーモニー効果：毒薬を'+seatName(st,ts)+'に渡した');
+    }
+    checkWin(st, seat); if(st.status==='ended'){ room.state=st; return; }
+    finishTurn(st, seat);
+    room.state = st;
+  });
+  setTimeout(function(){pen(0);clr();}, 100);
+}
+
+/* ─── エッセンス ─── */
+function doEssence(seedCardId, bannedColor, poisonTarget){
+  pen(1);
+  mutateRoom(S.roomId, function(room){
+    var st = parseState(room.state);
+    var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
+    assertTurn(st, seat); normalizeT(st);
+    if(st.phase!=='essence_setup') throw new Error('エッセンスフェイズではありません');
+    var banned = normColor(bannedColor);
+    if(!banned) throw new Error('禁色を指定してください');
+    var p = player(st, seat);
+
+    /* 場毒薬を対象プレイヤーに押しつけ */
+    var pt = poisonTarget!=null ? poisonTarget : -1;
+    if(pt!==-1 && pt!=='-1'){
+      st.field.forEach(function(slot,i){
+        if(slot&&slot.card&&slot.card.c==='P'){
+          var ts = validTarget(st, String(pt), seat);
+          if(ts){
+            receivePoison(st, ts, slot.card);
+            (slot.stack||[]).forEach(function(c){st.discard.push(c);});
+            slot.card=null; slot.stack=[];
+            log_(st,'エッセンス効果：毒スポットを'+seatName(st,ts)+'に押しつけ');
+          }
+        }
+      });
+    }
+    /* 場全クリア */
+    st.field.forEach(function(slot){
+      if(slot.card) st.discard.push(slot.card);
+      (slot.stack||[]).forEach(function(c){st.discard.push(c);});
+      slot.card=null; slot.stack=[];
+    });
+    /* 種札を場へ */
+    if(seedCardId){
+      var seed = findCard(p.hand, seedCardId);
+      if(seed&&seed.c!=='P'&&seed.c!==banned){
+        removeCard(p.hand, seed.id);
+        st.field[0].card=seed;
+      }
+    }
+    for(var i=0;i<FIELD_N;i++){
+      if(!st.field[i].card){st.field[i].card=drawCard(st);}
+      if(!st.field[i].card){st.field[i].card=fallback();}
+      st.field[i].stack=[];
+    }
+    drawToHand(st, seat, 2, false);
+    st.bannedColor=banned; st.bannedExpire=st.turnSerial+st.players.length;
+    log_(st,'エッセンス効果：禁色→'+CMETA[banned].name);
+    checkWin(st, seat); if(st.status==='ended'){ room.state=st; return; }
+    finishTurn(st, seat);
+    room.state = st;
+  });
+  setTimeout(function(){pen(0);clr();}, 100);
+}
+
+/* ─── 揮発 ─── */
+function doVolatilize(cardId){
+  pen(1);
+  mutateRoom(S.roomId, function(room){
+    var st = parseState(room.state);
+    var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
+    assertTurn(st, seat); normalizeT(st);
+    if(st.phase!=='choose'&&st.phase!=='restock_chain') throw new Error('揮発不可フェイズ');
+    var p = player(st, seat);
+    var c = findCard(p.hand, cardId); if(!c) throw new Error('カードなし');
+    if(c.c==='P') throw new Error('毒薬は揮発不可');
+    if(c.c!==st.bannedColor) throw new Error('禁色のみ揮発可能');
+    removeCard(p.hand, c.id); st.discard.push(c);
+    drawToHand(st, seat, 2, false);
+    log_(st, seatName(st,seat)+' 揮発→'+fmtCard(c)+' を捨て2枚補充');
+    checkWin(st, seat); if(st.status==='ended'){ room.state=st; return; }
+    finishTurn(st, seat);
+    room.state = st;
+  });
+  setTimeout(function(){pen(0);clr();}, 100);
+}
+
+/* ─── デトックス ─── */
+function doDetox(){
+  pen(1);
+  mutateRoom(S.roomId, function(room){
+    var st = parseState(room.state);
+    var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
+    assertTurn(st, seat); normalizeT(st);
+    var p = player(st, seat);
+    var poisons = p.hand.filter(function(c){return c.c==='P';}).slice(0,2);
+    if(poisons.length<2) throw new Error('毒薬2枚必要');
+    poisons.forEach(function(c){removeCard(p.hand, c.id); st.discard.push(c);});
+    var drawn = drawCard(st);
+    if(drawn){ if(drawn.c==='P') st.discard.push(drawn); else p.hand.push(drawn); }
+    p.barrierUntil = st.turnSerial + st.players.length;
+    sortHand(p.hand);
+    log_(st, seatName(st,seat)+' デトックス→1枚補充＋障壁');
+    finishTurn(st, seat);
+    room.state = st;
+  });
+  setTimeout(function(){pen(0);clr();}, 100);
+}
+
+/* ─── 宣言 ─── */
+function doDeclare(kind){
+  pen(1);
+  mutateRoom(S.roomId, function(room){
+    var st = parseState(room.state);
+    var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
+    assertTurn(st, seat);
+    var p = player(st, seat);
+    if(!p.hand||p.hand.length>2) throw new Error('手札2枚以下のとき宣言可能');
+    p.declared = kind==='bloom'?'ブルーミング':'リーチ';
+    log_(st, seatName(st,seat)+' 「'+p.declared+'」宣言');
+    room.state = st;
+  });
+  setTimeout(function(){pen(0);}, 100);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ゲームエンジン内部関数 (Code.gs を完全移植)
+   ═══════════════════════════════════════════════════════════════ */
+
+function finishTurn(st, seat){
+  if(st.status==='ended') return;
+  maturePoisonSpots(st);
+  st.turnSeat = nextSeat(st, seat);
+  st.turnSerial = Number(st.turnSerial||1)+1;
+  st.drewThisTurn=false; st.lastDrawn=null;
+  st.phase='choose';
+  if(st.forceDraw>0) st.phase='pending_draw';
+  normalizeT(st);
+  log_(st, seatName(st, st.turnSeat)+' の手番');
+}
+
+function checkWin(st, seat){
+  var p = player(st, seat); sortHand(p.hand);
+  if(p.hand.length===0){
+    st.status='ended'; st.winnerSeat=seat;
+    st.resultSummary=seatName(st, seat)+' の勝利！最後の香りが完成した';
+    st.finishedAt=new Date().toISOString();
+    log_(st, st.resultSummary);
+  }
+}
+
+function maturePoisonSpots(st){
+  (st.field||[]).forEach(function(slot){
+    if(slot&&slot.card&&slot.card.c==='P'){
+      var c = drawCard(st);
+      if(c){ slot.stack = slot.stack||[]; slot.stack.push(c); }
+    }
+  });
+}
+
+function pickupSlot(st, seat, idx){
+  var slot = st.field[idx]; if(!slot||!slot.card) return [];
+  var out=[];
+  if(slot.card.c==='P'){
+    out.push(slot.card);
+    (slot.stack||[]).forEach(function(c){out.push(c);});
+    log_(st, seatName(st,seat)+' 毒スポットから毒薬'+((slot.stack||[]).length?'+熟成'+slot.stack.length+'枚':'')+' 引取');
+  } else { out.push(slot.card); }
+  return out;
+}
+
+function receivePoison(st, ts, poison){
+  var p = player(st, ts);
+  if(!p){ st.discard.push(poison); return; }
+  if(hasBarrier(p, st.turnSerial)){ st.discard.push(poison); log_(st, seatName(st,ts)+' 障壁で毒薬無効化'); return; }
+  p.hand.push(poison); sortHand(p.hand);
+}
+
+function normalizeT(st){
+  var ts = Number(st.turnSerial||1);
+  if(st.bannedColor&&ts>=Number(st.bannedExpire||0)){st.bannedColor='';st.bannedExpire=0;}
+  (st.players||[]).forEach(function(p){
+    if(Number(p.barrierUntil||0)&&ts>=Number(p.barrierUntil||0)) p.barrierUntil=0;
+  });
+}
+
+function detectCombo(field){
+  var cards = field.map(function(s){return s&&s.card?s.card:null;});
+  if(cards.some(function(c){return !c||c.c==='P';})) return {type:'',label:''};
+  var cols = cards.map(function(c){return c.c;});
+  var nums = cards.map(function(c){return Number(c.v);});
+  var sameN = nums.every(function(v){return v===nums[0];});
+  var sameC = cols.every(function(c){return c===cols[0];});
+  var diffC = new Set(cols).size===3;
+  if(sameN) return {type:'ESSENCE',label:'エッセンス'};
+  if(sameC&&isRun(nums)) return {type:'GRADATION',label:'グラデーション'};
+  if(diffC) return {type:'HARMONY',label:'ハーモニー'};
+  if(sameC) return {type:'MONOTONE',label:'モノトーン'};
+  return {type:'',label:''};
+}
+
+function isRun(nums){
+  var u = Array.from(new Set(nums)).sort(function(a,b){return a-b;});
+  if(u.length!==3) return false;
+  for(var s=1;s<=12;s++){
+    var seq=[s,w12(s+1),w12(s+2)].sort(function(a,b){return a-b;});
+    if(String(seq)===String(u)) return true;
+  }
+  return false;
+}
+function w12(n){var x=n;while(x>12)x-=12;while(x<1)x+=12;return x;}
+
+function createDeck(){
+  var d=[];
+  COLORS.forEach(function(c){
+    for(var v=1;v<=12;v++){ d.push({id:c+'_'+v+'_'+uuid8(),c:c,v:v}); }
+  });
+  for(var i=0;i<4;i++){ d.push({id:'P_'+i+'_'+uuid8(),c:'P',v:'毒'}); }
+  return d;
+}
+
+function drawCard(st){
+  if(!st.deck||!st.deck.length) refillDeck(st);
+  return st.deck&&st.deck.length ? st.deck.shift() : null;
+}
+
+function drawToHand(st, seat, cnt, incP){
+  var p = player(st, seat);
+  for(var i=0;i<cnt;i++){ var c=drawCard(st); if(!c) break; p.hand.push(c); }
+  sortHand(p.hand);
+}
+
+function refillDeck(st){
+  if(st.deck&&st.deck.length) return;
+  if(!st.discard||!st.discard.length) return;
+  st.deck = shuffle(st.discard.splice(0));
+  log_(st,'捨て札→山札再構築');
+}
+
+function fallback(){ return {id:'F_'+uuid8(),c:'R',v:1}; }
+
+/* ═══════════════════════════════════════════════════════════════
+   State / Storage helpers
+   ═══════════════════════════════════════════════════════════════ */
+
+function emptyState(rid, cfg, players){
+  return {
+    roomId:rid, settings:cfg, status:'waiting',
+    players:(players||[]).map(function(p){return {seat:p.seat,token:p.token,name:p.name,hand:[],barrierUntil:0,declared:''};}),
+    deck:[], discard:[], excluded:[],
+    field:[0,1,2].map(function(i){return {slot:SLOTS[i],card:null,stack:[]};}),
+    turnSeat:'P1', turnSerial:1, forceDraw:0, forceDrawSrc:'',
+    bannedColor:'', bannedExpire:0, phase:'choose',
+    drewThisTurn:false, lastDrawn:null,
+    winnerSeat:'', resultSummary:'', finishedAt:'', logs:[]
+  };
+}
+
+function normCfg(s){ s=s||{}; return {maxPlayers:Math.max(2,Math.min(4,Number(s.maxPlayers||2)))}; }
+
+function parseState(t){
+  var s;
+  if(t==null) s=emptyState('',{},[]);
+  else if(typeof t==='string') s = JSON.parse(t);
+  else s = cloneO(t);
+  s.players = s.players||[];
+  s.deck = s.deck||[]; s.discard = s.discard||[]; s.excluded = s.excluded||[];
+  s.logs = s.logs||[]; s.phase = s.phase||'choose';
+  s.field = s.field||[0,1,2].map(function(i){return {slot:SLOTS[i],card:null,stack:[]};});
+  // Firebase は空配列/null を省くため欠損補完
+  s.field = s.field.map(function(f,i){ return f||{slot:SLOTS[i],card:null,stack:[]}; });
+  s.field.forEach(function(f){ if(!f.stack) f.stack=[]; });
+  s.players.forEach(function(p){ if(!p.hand) p.hand=[]; });
+  return s;
+}
+
+function genRandomId(){
+  return Math.random().toString(36).slice(2,8).toUpperCase();
+}
+function uuid8(){
+  return Math.random().toString(36).slice(2,10) + Math.random().toString(36).slice(2,6);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Response builder (buildResp_ 相当)
+   ═══════════════════════════════════════════════════════════════ */
+
+function buildResp(room, token){
+  var cfg = room.settings||{};
+  var st = parseState(room.state);
+  normalizeT(st);
+  var seat = seatByTk(st, token);
+  var me = player(st, seat);
+  var canOp = st.status==='playing' && seat===st.turnSeat;
+  var myHand = me ? (me.hand||[]).map(toClient) : [];
+  var poisonCount = myHand.filter(function(c){return c.type==='poison';}).length;
+
+  return {
+    ok:true,
+    roomId:room.roomId,
+    token:token,
+    updatedAt:room.updatedAt,
+    status:st.status,
+    seat:me?st.players.indexOf(me):-1,
+    seatId:seat,
+    seatLabel:seat?(me.name+' ('+seat+')'):'観戦',
+    turnSeat:st.turnSeat,
+    turnPlayerName:seatName(st, st.turnSeat),
+    turnSerial:Number(st.turnSerial||1),
+    phase:st.status==='playing'?st.phase||'choose':'waiting',
+    canOperate:canOp,
+    deckCount:(st.deck||[]).length,
+    discardCount:(st.discard||[]).length,
+    excludedCount:(st.excluded||[]).length,
+    forceDraw:Number(st.forceDraw||0),
+    forceDrawSrc:st.forceDrawSrc||'',
+    pendingDrawCount:Number(st.forceDraw||0),
+    bannedColor:st.bannedColor||'',
+    bannedExpire:Number(st.bannedExpire||0),
+    hasBannedInHand:!!(me&&st.bannedColor&&(me.hand||[]).some(function(c){return c.c===st.bannedColor&&c.c!=='P';})),
+    drewThisTurn:!!st.drewThisTurn,
+    winnerSeat:st.winnerSeat||'',
+    resultSummary:st.resultSummary||'',
+    finishedAt:st.finishedAt||'',
+    message:buildMsg(st, seat),
+    currentCombo:comboLabel(st),
+    myHand:myHand,
+    myPoisonCount:poisonCount,
+    myBarrier:me?hasBarrier(me, st.turnSerial):false,
+    myDeclared:me?me.declared||'':'',
+    players:(st.players||[]).map(function(p){
+      return {
+        seat:p.seat, name:p.name,
+        handCount:(p.hand||[]).length,
+        poisonCount:(p.hand||[]).filter(function(c){return c.c==='P';}).length,
+        barrier:hasBarrier(p, st.turnSerial),
+        declared:p.declared||'',
+        reachDeclared:!!p.declared,
+        isTurn:p.seat===st.turnSeat,
+        isYou:p.seat===seat
+      };
+    }),
+    field:(st.field||[]).map(function(slot,i){
+      if(!slot||!slot.card) return null;
+      var c = slot.card;
+      return {
+        color:c.c, number:c.c==='P'?0:Number(c.v),
+        emoji:CMETA[c.c]?CMETA[c.c].e:'✦',
+        colorName:CMETA[c.c]?CMETA[c.c].name:'',
+        type:c.c==='P'?'poison':'material',
+        label:c.c==='P'?'☠毒薬':CMETA[c.c].e+CMETA[c.c].name+c.v,
+        id:c.id, stackCount:(slot.stack||[]).length
+      };
+    }),
+    logs:(st.logs||[]).slice(-LOG_MAX)
+  };
+}
+
+function toClient(card){
+  return {
+    id:card.id, color:card.c, number:card.c==='P'?0:Number(card.v),
+    emoji:CMETA[card.c]?CMETA[card.c].e:'✦',
+    colorName:CMETA[card.c]?CMETA[card.c].name:'',
+    type:card.c==='P'?'poison':'material',
+    label:card.c==='P'?'☠毒薬':CMETA[card.c].e+CMETA[card.c].name+card.v
+  };
+}
+
+function buildMsg(st, seat){
+  if(st.status==='waiting') return '🧪 参加者が揃ったら「調合開始」をクリック';
+  if(st.status==='ended') return '🏆 '+st.resultSummary;
+  if(!seat) return seatName(st, st.turnSeat)+' の手番です';
+  if(seat!==st.turnSeat) return '⏳ '+seatName(st, st.turnSeat)+' の手番を待っています';
+  if(st.phase==='pending_draw') return '⚠️ モノトーン効果：'+st.forceDraw+'枚引いてターン終了';
+  if(st.phase==='grad_extra') return '🎨 グラデーション効果：素材カードを1枚追加除外';
+  if(st.phase==='harmony_act') return '🎵 ハーモニー効果：毒薬を渡す or 場に設置';
+  if(st.phase==='essence_setup') return '✨ エッセンス効果：手札1枚→場＋禁色指定';
+  if(st.phase==='restock_chain') return '📦 補充後→調合 or ターン終了';
+  if(st.bannedColor) return '🚫 禁色：'+CMETA[st.bannedColor].name+'。禁色は調合不可（揮発は可）';
+  return '⚗️ 調合 or 補充を選択';
+}
+
+function comboLabel(st){
+  try{ var c = detectCombo(st.field); return c.label||''; }catch(e){ return ''; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Utility
+   ═══════════════════════════════════════════════════════════════ */
+
+function assertTurn(st, seat){
+  if(st.status!=='playing') throw new Error('対局中ではありません');
+  if(st.turnSeat!==seat) throw new Error('あなたの手番ではありません');
+}
+function seatByTk(st, tk){ var p=(st.players||[]).find(function(v){return v.token===tk;}); return p?p.seat:''; }
+function player(st, seat){ return (st.players||[]).find(function(p){return p.seat===seat;})||null; }
+function nextSeat(st, seat){ var ps=st.players; var idx=ps.findIndex(function(p){return p.seat===seat;}); if(idx<0||!ps.length)return seat; return ps[(idx+1)%ps.length].seat; }
+function seatName(st, seat){ var p=player(st,seat); return p?p.name:seat; }
+function normName(n, fb){ var v=String(n||'').trim().slice(0,20); return v||fb||'調香師'; }
+function normColor(c){ c=String(c||'').toUpperCase(); return COLORS.indexOf(c)>=0?c:''; }
+function validTarget(st, seat, ex){ seat=String(seat||''); if(!seat||seat===ex) return ''; return player(st,seat)?seat:''; }
+function hasBarrier(p, ts){ return Number(p&&p.barrierUntil||0)>Number(ts||0); }
+
+function sortHand(h){
+  h.sort(function(a,b){
+    var cd = cSort(a.c)-cSort(b.c); if(cd) return cd;
+    var av = a.c==='P'?99:Number(a.v), bv = b.c==='P'?99:Number(b.v);
+    if(av!==bv) return av-bv;
+    return String(a.id).localeCompare(String(b.id));
+  });
+}
+function cSort(c){ return {R:0,B:1,Y:2,G:3,P:4}[c]||9; }
+
+function findCard(cards, id){ return (cards||[]).find(function(c){return String(c.id)===String(id);})||null; }
+function removeCard(cards, id){ var i=(cards||[]).findIndex(function(c){return String(c.id)===String(id);}); if(i>=0)return cards.splice(i,1)[0]; return null; }
+function uniq(ids){ var o=[]; (ids||[]).forEach(function(id){id=String(id); if(id&&o.indexOf(id)<0)o.push(id);}); return o; }
+function hasDup(a){ return new Set(a).size!==a.length; }
+function fmtCard(c){ return c.c==='P'?'☠毒薬':CMETA[c.c].e+CMETA[c.c].name+c.v; }
+function log_(st, t){ st.logs = st.logs||[]; st.logs.push({at:new Date().toISOString(),text:t}); if(st.logs.length>LOG_MAX) st.logs = st.logs.slice(-LOG_MAX); }
+function cloneO(o){ return JSON.parse(JSON.stringify(o)); }
+function shuffle(a){ var r=a.slice(); for(var i=r.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=r[i];r[i]=r[j];r[j]=t;} return r; }
+
+/* ═══════════════════════════════════════════════════════════════
+   UI (Index(4).html から完全継承)
+   ═══════════════════════════════════════════════════════════════ */
+
+function apply(r){
+  S.room=r; S.roomId=r.roomId; S.token=r.token||S.token;
+  localStorage.setItem(SK.roomId,S.roomId); localStorage.setItem(SK.token,S.token);
+  var u=new URL(location.href);
+  if(u.searchParams.get('room')!==S.roomId){u.searchParams.set('room',S.roomId);history.replaceState({},'',u.toString());}
+  renderAll(); maybeRes();
+}
+
+function clr(){S.selCards=[];S.exclId='';S.selSlots=[];S.selFlock='';S.selBan='';S.selPoisonTarget=-1;}
+
+function renderAll(){rMeta();rPlayers();rField();rPhase();rHand();rLogs();rBtns();}
+function rMeta(){
+  var r=S.room;
+  E.plRoom.textContent='工房:'+(S.roomId||'-');
+  E.rInput.value=S.roomId;
+  E.plSeat.textContent='席:'+(r?r.seatLabel:'-');
+  E.plTurn.textContent='手番:'+(r?r.turnPlayerName:'-');
+  E.plPhase.textContent=r&&r.phase?PHL[r.phase]||r.phase:'-';
+  E.plDeck.textContent='山:'+(r?r.deckCount:0);
+  E.plDisc.textContent='捨:'+(r?r.discardCount:0);
+  E.plExcl.textContent='除:'+(r?r.excludedCount:0);
+  if(r&&r.bannedColor){E.plBan.style.display='';E.plBan.textContent='🚫'+CN[r.bannedColor];}else E.plBan.style.display='none';
+  E.msg.textContent=r?r.message:'🧪 工房を作成 or 参加';
+}
+function rPlayers(){
+  E.pRow.innerHTML='';
+  var ps=S.room?S.room.players:[];
+  if(!ps.length){E.pRow.innerHTML='<div class="pc"><div class="nm">待機中</div></div>';return;}
+  ps.forEach(function(p){var d=mk('div','pc'+(p.isTurn?' act':''));d.innerHTML='<div class="nm">'+(p.isYou?'⭐':'')+esc(p.name)+'</div><div class="inf">手札'+p.handCount+(p.poisonCount>0?' ☠×'+p.poisonCount:'')+(p.reachDeclared?' 🌸':'')+' '+(p.isTurn?'🟢':'⏳')+(p.barrier?' 🛡️':'')+'</div>';E.pRow.appendChild(d);});
+}
+function rField(){
+  E.slots.innerHTML='';
+  var r=S.room;var f=r?r.field:[null,null,null];
+  var canSel=r&&r.canOperate&&(r.phase==='choose'||r.phase==='restock_chain');
+  f.forEach(function(c,i){
+    var d=mk('div','slot'+(S.selSlots.indexOf(i)>=0?' sel':''));
+    d.innerHTML='<div class="sLbl">'+SN[i]+'</div>';
+    if(c){
+      var sc=c.type==='poison'?'#6b21a8':({R:'#c0392b',B:'#2874a6',Y:'#b7950b',G:'#1e8449'}[c.color]||'#666');
+      d.innerHTML+='<div class="sEmoji">'+esc(c.emoji)+'</div><div class="sNum" style="color:'+sc+'">'+(c.type==='poison'?'☠':c.number)+'</div><div class="sName">'+esc(c.colorName)+'</div>';
+      if(c.stackCount>0) d.innerHTML+='<div class="sStack">🍷×'+c.stackCount+'</div>';
+    } else d.innerHTML+='<div class="sEmoji" style="opacity:.3">—</div>';
+    if(canSel) d.onclick=function(){tglSlot(i);};
+    E.slots.appendChild(d);
+  });
+  E.comboLbl.textContent=r&&r.currentCombo?'✦'+r.currentCombo:'';
+}
+function tglSlot(i){var x=S.selSlots.indexOf(i);if(x>=0)S.selSlots.splice(x,1);else S.selSlots.push(i);rField();rPhase();}
+
+function rPhase(){
+  var r=S.room;
+  if(!r||!r.canOperate||r.status!=='playing'){E.phBox.classList.remove('show');return;}
+  E.phBox.classList.add('show');
+  var ph=r.phase; E.phT.textContent=PHL[ph]||ph; E.phC.innerHTML='';
+  if(ph==='choose'||ph==='restock_chain'){
+    E.phD.textContent=ph==='choose'?'⚗️ 調合/補充'+(r.bannedColor&&r.hasBannedInHand?'/揮発(💨'+CN[r.bannedColor]+')':''):'補充済→調合/終了'+(r.bannedColor&&r.hasBannedInHand?'/揮発':'');
+    var N=S.selCards.length;var nd=N>0?N-1:0;
+    var info=mk('div','');info.style.cssText='font-size:10px;color:var(--gold);margin-bottom:6px';info.textContent='選択'+N+' 除外:'+(S.exclId?'✓':'❌')+' スロット:'+S.selSlots.length+'/'+nd;E.phC.appendChild(info);
+    var bb=mk('button','bg');bb.textContent='⚗️調合';bb.disabled=!N||!S.exclId||S.selSlots.length!==nd||S.pend;bb.onclick=doBlend;E.phC.appendChild(bb);
+    if(ph==='choose'){var rb=mk('button','bd');rb.textContent='📦補充';rb.disabled=S.pend;rb.style.marginLeft='6px';rb.onclick=doRestock;E.phC.appendChild(rb);}
+    if(ph==='restock_chain'){var eb=mk('button','bd');eb.textContent='⏭終了';eb.disabled=S.pend;eb.style.marginLeft='6px';eb.onclick=doEndTurn;E.phC.appendChild(eb);}
+    /* Declare */
+    if(r.myHand&&r.myHand.length<=2&&!r.myDeclared){
+      var dw=mk('div','');dw.style.cssText='margin-top:6px;display:flex;gap:4px';
+      var dr=mk('button','bd');dr.textContent='🌸リーチ';dr.disabled=S.pend;dr.onclick=function(){doDeclare('reach');};dw.appendChild(dr);
+      var db2=mk('button','bd');db2.textContent='💐ブルーミング';db2.disabled=S.pend;db2.onclick=function(){doDeclare('bloom');};dw.appendChild(db2);
+      E.phC.appendChild(dw);
+    }
+    /* Volatilize */
+    if(r.bannedColor&&r.hasBannedInHand){
+      var vw=mk('div','');vw.style.cssText='margin-top:6px;display:flex;flex-wrap:wrap;gap:4px';
+      var vl=mk('span','');vl.style.cssText='font-size:10px;color:var(--gold);align-self:center';vl.textContent='💨揮発('+CN[r.bannedColor]+'):';vw.appendChild(vl);
+      (r.myHand||[]).forEach(function(c){
+        if(c.type==='material'&&c.color===r.bannedColor){
+          var vb=mk('button','br');vb.textContent=c.label;vb.disabled=S.pend;vb.style.fontSize='10px';vb.onclick=function(){doVolatilize(c.id);};vw.appendChild(vb);
+        }
+      });
+      E.phC.appendChild(vw);
+    }
+    /* Detox */
+    if(poisonCnt()>=2){var dtb=mk('button','br');dtb.textContent='💀デトックス';dtb.disabled=S.pend;dtb.style.marginLeft='6px';dtb.onclick=doDetox;E.phC.appendChild(dtb);}
+  } else if(ph==='pending_draw'){
+    E.phD.textContent='⚠️'+(r.pendingDrawCount||0)+'枚強制ドロー';
+    var pb=mk('button','br');pb.textContent=(r.pendingDrawCount||0)+'枚引く';pb.disabled=S.pend;pb.onclick=doPDraw;E.phC.appendChild(pb);
+  } else if(ph==='grad_extra'){
+    E.phD.textContent='🎨 グラデーション追加除外（素材カードのみ/毒薬不可）';
+    (r.myHand||[]).forEach(function(c){if(c.type==='poison')return;var b=mk('button','bd');b.textContent=c.label;b.style.marginRight='4px';b.disabled=S.pend;b.onclick=function(){doGradEx(c.id);};E.phC.appendChild(b);});
+  } else if(ph==='harmony_act'){
+    E.phD.textContent='🎵 ハーモニー：毒薬を渡す or 場設置';
+    r.players.forEach(function(p){if(p.isYou)return;var b=mk('button','bd');b.textContent=p.name+'に渡す';b.disabled=S.pend;b.onclick=function(){doHarmony('pass',p.seat,0);};E.phC.appendChild(b);});
+    [0,1,2].forEach(function(si){var b=mk('button','br');b.textContent=SN[si]+'設置';b.disabled=S.pend;b.style.marginLeft='4px';b.onclick=function(){doHarmony('spot',-1,si);};E.phC.appendChild(b);});
+  } else if(ph==='essence_setup'){
+    E.phD.textContent='✨ エッセンス：手札1枚→場+禁止色+場毒薬譲渡先(任意)';
+    var w1=mk('div','');w1.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px';
+    (r.myHand||[]).forEach(function(c){if(c.type==='poison')return;var b=mk('button','bd '+(S.selFlock===c.id?'sel':''));b.textContent=c.label;b.onclick=function(){S.selFlock=c.id;rPhase();};w1.appendChild(b);});E.phC.appendChild(w1);
+    var w2=mk('div','');w2.style.cssText='display:flex;gap:4px;margin-bottom:6px';
+    ['R','B','Y','G'].forEach(function(col){var b=mk('button','bd '+(S.selBan===col?'sel':''));b.textContent=CE[col]+CN[col];b.onclick=function(){S.selBan=col;rPhase();};w2.appendChild(b);});E.phC.appendChild(w2);
+    var hasFieldPoison=(r.field||[]).some(function(c){return c&&c.type==='poison';});
+    if(hasFieldPoison){
+      var w3=mk('div','');w3.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px';
+      var nl=mk('span','');nl.style.cssText='font-size:10px;color:var(--gold);align-self:center';nl.textContent='場毒薬の押し付け先:';w3.appendChild(nl);
+      var nb=mk('button','bd '+(S.selPoisonTarget===-1?'sel':''));nb.textContent='なし(捨て)';nb.onclick=function(){S.selPoisonTarget=-1;rPhase();};w3.appendChild(nb);
+      r.players.forEach(function(p){if(p.isYou)return;var b=mk('button','bd '+(S.selPoisonTarget===p.seat?'sel':''));b.textContent=p.name;b.onclick=function(){S.selPoisonTarget=p.seat;rPhase();};w3.appendChild(b);});
+      E.phC.appendChild(w3);
+    }
+    var go=mk('button','bg');go.textContent='✨決定';go.disabled=!S.selFlock||!S.selBan||S.pend;go.onclick=function(){doEssence(S.selFlock,S.selBan,S.selPoisonTarget);};E.phC.appendChild(go);
+  }
+}
+
+function poisonCnt(){var h=S.room?S.room.myHand||[]:[];var c=0;h.forEach(function(x){if(x.type==='poison')c++;});return c;}
+
+function rHand(){
+  E.handScr.innerHTML='';
+  var r=S.room;var hand=r?r.myHand||[]:[];
+  E.hCnt.textContent=hand.length;
+  E.hHelp.textContent=hand.length?'タップ:選択 / 長押し:除外指定':'手札なし';
+  if(!hand.length){E.handScr.innerHTML='<div style="color:rgba(232,220,200,.3);font-size:11px;padding:6px">手札なし</div>';return;}
+  hand.forEach(function(c){
+    var cls='hc '+(CC[c.color]||'');
+    if(S.selCards.indexOf(c.id)>=0) cls+=' sel';
+    if(S.exclId===c.id) cls+=' excl';
+    if(r&&r.bannedColor&&c.type==='material'&&c.color===r.bannedColor) cls+=' banned';
+    var b=mk('button',cls);
+    b.innerHTML='<span class="hE">'+esc(c.emoji)+' '+esc(CN[c.color]||'')+'</span><span class="hN">'+(c.type==='poison'?'☠':c.number)+'</span><span class="hL">'+esc(c.label)+'</span>';
+    b.onclick=function(){tglCard(c.id);};
+    b.oncontextmenu=function(e){e.preventDefault();setExcl(c.id);};
+    var lt;
+    b.addEventListener('touchstart',function(e){lt=setTimeout(function(){e.preventDefault();setExcl(c.id);},400);},{passive:false});
+    b.addEventListener('touchend',function(){clearTimeout(lt);});
+    b.addEventListener('touchmove',function(){clearTimeout(lt);});
+    E.handScr.appendChild(b);
+  });
+}
+
+function tglCard(id){
+  var x=S.selCards.indexOf(id);
+  if(x>=0){S.selCards.splice(x,1);if(S.exclId===id)S.exclId='';}
+  else{if(S.selCards.length>=3)return tst('最大3枚');S.selCards.push(id);if(S.selCards.length===1)S.exclId=id;}
+  while(S.selSlots.length>Math.max(0,S.selCards.length-1)) S.selSlots.pop();
+  rHand();rField();rPhase();
+}
+function setExcl(id){if(S.selCards.indexOf(id)<0){S.selCards.push(id);if(S.selCards.length>3)S.selCards.shift();}S.exclId=id;rHand();rPhase();}
+
+function rLogs(){
+  E.logL.innerHTML='';
+  var logs=S.room?S.room.logs||[]:[];
+  if(!logs.length){E.logL.innerHTML='<div class="logI"><div class="lt">記録なし</div></div>';return;}
+  logs.slice().reverse().forEach(function(l){var d=mk('div','logI');d.innerHTML='<div class="lt">'+esc(l.text)+'</div><div class="ls">'+esc(fmtT(l.at))+'</div>';E.logL.appendChild(d);});
+}
+
+function rBtns(){
+  var r=S.room;var j=r&&r.seat>=0;
+  E.cpBtn.disabled=!S.roomId;
+  E.sBtn.disabled=!(j&&r&&r.status==='waiting'&&r.players.length>=2)||S.pend;
+  E.rsBtn.disabled=!j||S.pend;
+}
+
+function maybeRes(){var r=S.room;if(!r||r.status!=='ended'||!r.finishedAt)return;var k=r.finishedAt+r.resultSummary;if(S.shown===k)return;S.shown=k;E.resT.textContent='🏆 ゲーム終了';E.resB.textContent=r.resultSummary||'終了';E.resOv.classList.add('show');}
+
+function cpR(){navigator.clipboard.writeText(S.roomId).then(function(){tst('📋コピー');}).catch(function(){});}
+function setTab(t){S.tab=t;E.tLog.classList.toggle('act',t==='log');E.tRule.classList.toggle('act',t==='rule');E.logP.style.display=t==='log'?'':'none';E.ruleP.style.display=t==='rule'?'':'none';}
+function pen(f){S.pend=!!f;E.cBtn.disabled=!!f;E.jBtn.disabled=!!f;rBtns();}
+function tst(m){E.toast.textContent=m;E.toast.classList.add('show');clearTimeout(tst._t);tst._t=setTimeout(function(){E.toast.classList.remove('show');},2400);}
+function fmtT(iso){if(!iso)return'-';try{return new Date(iso).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}catch(e){return iso;}}
+function esc(s){var d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML;}
+function mk(tag,cls){var e=document.createElement(tag);if(cls)e.className=cls;return e;}
+</script></body></html>
