@@ -64,7 +64,7 @@ button{appearance:none;border:none;height:32px;padding:0 12px;border-radius:6px;
   <div id="logP"><div class="logScr" id="logL"></div></div>
   <div id="ruleP" style="display:none"><div class="ruleW">
     <h3>🧪 カード構成</h3><p>素材カード48枚(4色×1〜12) + 毒薬4枚 = 計52枚。<br>初期手札 <b>10枚</b>。場スロット <b>3</b>。<br><b>12と1は連番</b>(11-12-1, 12-1-2 も可)。</p>
-    <h3>⚗️ アクション</h3><p><b>①調合:</b> 手札1〜3枚出し。<br>&emsp;・<b>1枚</b>: 除外のみ(役不要)→<b>手動で手番終了</b>。選択者は次手番まで<b>無防備(反射不可)</b>になります。<br>&emsp;・<b>2〜3枚</b>: 1枚除外+残り(1〜2)で場を上書き→<b>役成立必須</b>(トラップ仕込みは素材2+毒1で<b>2スロット同時更新</b>)。<br><b>②補充:</b> 山札1枚引く(手動で手番終了)。毒薬はそのまま加入。<br><b>③揮発:</b> 禁色/毒薬1枚除外+山札2枚ドロー(手動で手番終了)。</p>
+    <h3>⚗️ アクション</h3><p><b>①調合:</b> 手札1〜3枚出し。<br>&emsp;・<b>1枚</b>: 除外のみ(役不要)→<b>手動で手番終了</b>。選択者は次手番まで<b>無防備(反射不可)</b>になります。<br>&emsp;・<b>2〜3枚</b>: 1枚除外+残り(1〜2)で場を上書き→<b>役成立必須</b>。<br>&emsp;・<b>4枚(🕷️トラップ)</b>: 素材1除外+素材2配置+毒薬1を下に隠す→<b>2スロット同時更新+役成立必須</b>。<br><b>②補充:</b> 山札1枚引く(手動で手番終了)。毒薬はそのまま加入。<br><b>③揮発:</b> 禁色/毒薬1枚除外+山札2枚ドロー(手動で手番終了)。</p>
     <h3>🎵 役(ブレンド)</h3><table>
     <tr><th>役</th><th>条件</th><th>効果</th></tr>
     <tr><td>モノトーン</td><td>同色3枚</td><td>次プレイヤーのみ+3ドロー</td></tr>
@@ -81,7 +81,7 @@ button{appearance:none;border:none;height:32px;padding:0 12px;border-radius:6px;
     <h3>🪞 ミラー・ノート (場の特殊効果)</h3><p>場に同じ色の「1」と「12」が同時に並んだ瞬間に<b>手番の進行方向が逆転</b>します。ターン終了時に自動判定。</p>
     <h3>🆕 手動「手番終了」ボタン</h3><p>1枚出し(除外のみ)/補充/揮発/調合後、<b>自動で手番は終了せず</b>「🏁手番終了」ボタンを押して終了します。手札が3枚以下になったターンは、ボタンを押す前に<b>💐ブルーミング宣言</b>を忘れないこと(失念で+2ドローペナルティ)。</p>
     <h3>🛡️ 無防備フラグ(除外のみ)</h3><p>「1枚出し(除外のみ)」を選択したプレイヤーは<b>次の自分の手番まで無防備</b>となり、その期間中は<b>フル・ブルーム反射を使用できません</b>(反射保有中でも攻撃ドローが直撃)。</p>
-    <h3>🕷️ シークレット・トラップ</h3><p><b>3枚出し限定</b>(素材2枚+毒薬1枚)。<b>2つのスロットを同時に更新</b>(1つは通常の素材更新、もう1つは表向き素材の下に毒薬を隠した更新)、残る素材1枚を除外します。役判定は<b>2つの更新素材+他1スロット</b>の3枚で通常どおり行います。調合記録には<b>「通常の調合」</b>としてのみ記録され、トラップの存在は一切秘匿されます。</p>
+    <h3>🕷️ シークレット・トラップ (4枚出し)</h3><p><b>4枚出し限定</b>(除外コスト=素材1枚 + 配置=素材2枚 + 仕込み=毒薬1枚)。<b>コスト素材1枚を除外</b>し、<b>素材2枚を2つのスロットに同時配置</b>(1つは通常更新、もう1つは下に毒薬を隠した更新)します。<b>毒を隠すスロットは2ステップ目に明示選択</b>。役判定は<b>配置した素材2枚+他1スロット</b>の3枚で通常どおり行います。<br>⚠️<b>ログ偽装:</b> 相手側の調合記録には<b>「調合→役『〇〇』成立」のみ</b>しか表示されず、スロット位置・毒仕込み・除外コスト内容は一切秘匿されます(他プレイヤーには通常の調合と完全に見分けがつきません)。</p>
     <h3>☠️ トラップ発動 / 安全除去</h3><p>相手がそのスロットを<b>上書き</b>または<b>回収</b>した瞬間、隠し毒薬が相手手札へ強制移動し、さらに<b>山札から1枚ドロー</b>。このドローは<b>フル・ブルームで反射されません</b>。自分の手番なら、<b>1枚出し</b>でトラップスロットを指定して安全にまとめて除去できます。</p>
     <h3>🚫 禁止色 / 💨揮発</h3><p>エッセンスで指定。1周で自動解除。揮発:禁色/毒薬1枚除外+山札2枚引く(手札+1)。</p>
     <h3>💐 ブルーミング宣言 (詳細ルール)</h3><p><b>① 宣言が必要なタイミング:</b> 手札が<b>4枚以上の状態から</b>、アクションによって<b>3枚以下</b>になったターンの終了時に宣言必須。一度宣言した後は、手札が3枚以下である限り毎ターン宣言し直す必要はなし。<br><b>② 再発動(リセット)条件:</b> 補充/攻撃(モノトーン等)/毒薬回収などで<b>手札が4枚以上に戻った場合、以前の宣言は無効(リセット)</b>。再度カードを減らして3枚以下になったらブルーミングを再宣言。<br><b>③ 失念時のペナルティ:</b> 4枚→ 3枚以下になったターンでボタンを押さずに終了しようとした場合、即座に<b>2枚強制ドロー+手番強制終了</b>。</p>
@@ -141,7 +141,7 @@ var PHL={choose:'アクション選択',pending_draw:'強制ドロー',grad_extr
 var SK={token:'eo4_tk',roomId:'eo4_rm',name:'eo4_nm'};
 
 var S={token:ldTk(),roomId:localStorage.getItem(SK.roomId)||'',name:localStorage.getItem(SK.name)||'',room:null,ref:null,tab:'log',pend:false,shown:null,
-       selCards:[],exclId:'',selSlots:[],selBan:'',selPoisonTarget:-1,selRecover:-1,selRecoverExtra:-1,selRainbowEx:[],subId:null,joinOnce:false};
+       selCards:[],exclId:'',selSlots:[],selBan:'',selPoisonTarget:-1,selRecover:-1,selRecoverExtra:-1,selRainbowEx:[],subId:null,joinOnce:false,selTrapSlot:-1};
 var E={};
 ['pName','maxP','rInput','cBtn','jBtn','cpBtn','sBtn','rsBtn','plRoom','plSeat','plTurn','plPhase','plDeck','plDisc','plExcl','plBan','plExtra','plBloom','msg','pRow','slots','comboLbl','phBox','phT','phD','phC','hCnt','hHelp','handScr','tLog','tRule','logP','ruleP','logL','toast','resOv','resT','resB','resX'].forEach(function(id){E[id]=document.getElementById(id);});
 
@@ -489,7 +489,10 @@ function doBlend(){
     return;
   }
   if(!S.exclId) return tst('除外指定(長押し/右クリック)');
-  var payload = {cardIds:S.selCards.slice(), excludeId:S.exclId, slots:S.selSlots.slice()};
+  /* 4枚出し(トラップ)時は S.selTrapSlot (0 or 1) も必須 */
+  var isTrap4 = (S.selCards.length===4);
+  if(isTrap4 && (S.selTrapSlot!==0 && S.selTrapSlot!==1)) return tst('🕷️毒を隠すスロットを選択');
+  var payload = {cardIds:S.selCards.slice(), excludeId:S.exclId, slots:S.selSlots.slice(), trapSlotIdx:(isTrap4?S.selTrapSlot:-1)};
   pen(1);
   mutateRoom(S.roomId, function(room){
     var st = parseState(room.state);
@@ -500,15 +503,15 @@ function doBlend(){
     var ids = uniq(payload.cardIds||[]);
     var exId = String(payload.excludeId||'');
     var tSlots = (payload.slots||[]).map(Number);
-    if(ids.length<2||ids.length>3) throw new Error('2〜3枚');
+    if(ids.length<2||ids.length>4) throw new Error('2〜3枚(通常)または4枚(シークレット・トラップ)のみ');
     if(!exId||ids.indexOf(exId)<0) throw new Error('除外カード指定必須');
 
     var cards = ids.map(function(id){
       var c = findCard(p.hand, id); if(!c) throw new Error('手札にないカード');
-      if(st.bannedColor&&c.c===st.bannedColor) throw new Error('禁色は調合不可(揮発は可)');
+      if(st.bannedColor&&c.c===st.bannedColor&&c.c!=='P') throw new Error('禁色は調合不可(揮発は可)');
       return cloneO(c);
     });
-    var plan = analyzeBlend(cards, exId);
+    var plan = analyzeBlend(cards, exId, Number(payload.trapSlotIdx));
     if(tSlots.length!==plan.expectedSlots) throw new Error('スロット数不正');
     if(hasDup(tSlots)||tSlots.some(function(v){return v<0||v>=FIELD_N;})) throw new Error('スロット不正');
 
@@ -1097,25 +1100,33 @@ function isMiniBlend(c1,c2){
   return false;
 }
 
-function analyzeBlend(cards, exId){
+function analyzeBlend(cards, exId, trapSlotIdx){
   var exCard = findCard(cards, exId);
   if(!exCard) throw new Error('除外カード指定必須');
   var remain = cards.filter(function(c){return c.id!==exId;}).map(cloneO);
   var poisons = cards.filter(function(c){return c.c==='P';});
   var plan = {exCard:cloneO(exCard), visibleCards:remain.map(cloneO), hiddenPoison:null, usesSecretTrap:false, expectedSlots:remain.length, trapSlotIndex:-1};
-  if(!poisons.length) return plan;
+  if(!poisons.length){
+    /* 通常調合 (2〜3枚出し) */
+    if(cards.length<2 || cards.length>3) throw new Error('通常の調合は 2〜3枚出しです');
+    return plan;
+  }
+  /* 毒薬を含む → シークレット・トラップ(4枚出し限定) */
   if(poisons.length>1) throw new Error('1回の調合に毒薬は1枚まで');
-  if(cards.length!==3) throw new Error('シークレット・トラップは 3枚出し(素材2+毒薬1) のみ有効');
-  if(exCard.c==='P') throw new Error('シークレット・トラップでは素材カードを除外指定してください');
+  if(cards.length!==4) throw new Error('シークレット・トラップは 4枚出し(除外素材1+配置素材2+毒薬1) のみ有効');
+  if(exCard.c==='P') throw new Error('シークレット・トラップでは素材カードを除外コスト(1枚)として指定してください');
   var remainPoison = remain.filter(function(c){return c.c==='P';});
   var remainMaterial = remain.filter(function(c){return c.c!=='P';});
-  if(remainMaterial.length!==2 || remainPoison.length!==0) throw new Error('シークレット・トラップ: 配置=素材2枚、除外=素材1枚、下仕込み=毒薬1枚 としてください');
-  /* ★同時2スロット更新: visibleCards = 素材2枚、1つは通常更新、もう1つは毒薬を隠した更新 */
+  if(remainMaterial.length!==2 || remainPoison.length!==1) throw new Error('シークレット・トラップ: 除外=素材1枚, 配置=素材2枚, 仕込み=毒薬1枚 としてください');
+  /* ★同時2スロット更新: visibleCards = 素材2枚、毒薬は trapSlotIdx で指定されたスロット位置に隠す */
   plan.visibleCards = remainMaterial.map(cloneO);
-  plan.hiddenPoison = cloneO(poisons[0]);
+  plan.hiddenPoison = cloneO(remainPoison[0]);
   plan.usesSecretTrap = true;
   plan.expectedSlots = 2;
-  plan.trapSlotIndex = 1; /* visibleCards[1] の位置に毒薬を隠す(index=1 の選択スロット) */
+  /* trapSlotIdx は配置スロット(visibleCards)のインデックス(0 or 1)を指定。
+     UI側(doBlend呼び出し元)から tSlots 配列内の位置(0 or 1)で渡される。
+     指定なしの場合はデフォルトで 1 (互換性維持)。 */
+  plan.trapSlotIndex = (trapSlotIdx===0 || trapSlotIdx===1) ? trapSlotIdx : 1;
   return plan;
 }
 function slotHasTrap(slot){ return !!(slot && slot.trap && slot.trap.poison); }
@@ -1244,9 +1255,11 @@ function detectCombos(field){
   if(sameC && run) out.push({type:'GRADATION',label:'グラデーション'});
   if(diffC && run) out.push({type:'RAINBOW',label:'レインボー・ラン'});
   if(sameC && !run) out.push({type:'MONOTONE',label:'モノトーン'});
+  /* ハーモニー(3色バラバラ+非連番)はミラー・ノート(a-b-a)と排他 */
   if(diffC && !run && !detectMirrorSymmetry(nums)) out.push({type:'HARMONY',label:'ハーモニー'});
   if(sum===21) out.push({type:'FULL_BLOOM',label:'フル・ブルーム'});
-  /* ★ ミラー・ノート役(新): 3つの数字が左右対称 a-b-a パターン */
+  /* ★ ミラー・ノート役(新): 3つの数字が左右対称 a-b-a パターン。
+     同色 a-b-a の場合はモノトーンとミラー・ノート両方成立(ダブル・ブレンド)。 */
   if(detectMirrorSymmetry(nums)) out.push({type:'MIRROR_NOTE',label:'ミラー・ノート'});
   return out;
 }
@@ -1532,7 +1545,7 @@ function apply(r){
   renderAll(); maybeRes();
 }
 
-function clr(){S.selCards=[];S.exclId='';S.selSlots=[];S.selBan='';S.selPoisonTarget=-1;S.selRecover=-1;S.selRainbowEx=[];}
+function clr(){S.selCards=[];S.exclId='';S.selSlots=[];S.selBan='';S.selPoisonTarget=-1;S.selRecover=-1;S.selRainbowEx=[];S.selTrapSlot=-1;}
 
 function renderAll(){rMeta();rPlayers();rField();rPhase();rHand();rLogs();rBtns();}
 
@@ -1594,21 +1607,22 @@ function rField(){
 function currentSelCards(){ var hand=(S.room&&S.room.myHand)||[]; return S.selCards.map(function(id){ return hand.find(function(c){return c.id===id;}); }).filter(Boolean); }
 function isTrapSetupSelection(){
   var cards=currentSelCards();
-  if(cards.length!==3 || !S.exclId) return false;
+  if(cards.length!==4 || !S.exclId) return false;
   var poisons=cards.filter(function(c){return c.type==='poison';});
   if(poisons.length!==1) return false;
   var ex=cards.find(function(c){return c.id===S.exclId;});
   if(!ex || ex.type==='poison') return false;
   var remain=cards.filter(function(c){return c.id!==S.exclId;});
-  return remain.length===2 && remain.filter(function(c){return c.type==='poison';}).length===1 && remain.filter(function(c){return c.type!=='poison';}).length===1;
+  /* 残り3枚 = 素材2+毒1 */
+  return remain.length===3 && remain.filter(function(c){return c.type==='poison';}).length===1 && remain.filter(function(c){return c.type!=='poison';}).length===2;
 }
 function slotNeedCount(){
   var n=S.selCards.length;
   if(n<=0) return 0;
   if(n===1) return 0;
   if(n===2) return 1;
-  /* ★ トラップ仕込み時も通常と同じ 2スロット (同時2スロット更新) */
-  if(n===3) return 2;
+  if(n===3) return 2; /* 通常3枚出し: 1枚除外 + 2枚配置 */
+  if(n===4) return 2; /* トラップ4枚出し: 1枚除外 + 2枚配置(毒薬は隠し) */
   return Math.max(0,n-1);
 }
 function slotMaxCount(){ return S.selCards.length===1 ? 1 : slotNeedCount(); }
@@ -1620,6 +1634,8 @@ function tglSlot(i){
     if(S.selSlots.length>=max) return tst('スロット'+max+'枚まで');
     S.selSlots.push(i);
   }
+  /* ★ スロット選択変更で毒隠し指定もリセット(古い参照を防ぐ) */
+  S.selTrapSlot=-1;
   rField();rPhase();
 }
 
@@ -1635,13 +1651,32 @@ function rPhase(){
     var N=S.selCards.length;var nd=N>1?N-1:0;
     var info=mk('div','');info.style.cssText='font-size:10px;color:var(--gold);margin-bottom:6px';
     if(N===1) info.textContent='選択1 除外:'+(S.exclId?'✓':'❌')+' スロット:'+S.selSlots.length+'/1 [1枚出し=除外のみ / トラップ指定で安全除去]';
-    else info.textContent='選択'+N+' 除外:'+(S.exclId?'✓':'❌')+' スロット:'+S.selSlots.length+'/'+slotNeedCount()+(isTrapSetupSelection()?' [🕷️トラップ仕込:2スロット同時更新]':'');
+    else {
+      var trapInfo = isTrapSetupSelection() ? (' [🕷️トラップ仕込(4枚): 2スロット同時更新'+(S.selTrapSlot>=0?' / 毒隠し='+SN[S.selSlots[S.selTrapSlot]]:' / 毒隠し未選択')+']') : '';
+      info.textContent='選択'+N+' 除外:'+(S.exclId?'✓':'❌')+' スロット:'+S.selSlots.length+'/'+slotNeedCount()+trapInfo;
+    }
     E.phC.appendChild(info);
 
     var bb=mk('button','bg');bb.textContent='⚗️調合';
     var slotsOk = (N===1)?(S.selSlots.length<=1):(S.selSlots.length===slotNeedCount());
-    bb.disabled=!N||!S.exclId||!slotsOk||S.pend;
+    var trapOk = !isTrapSetupSelection() || (S.selTrapSlot===0 || S.selTrapSlot===1);
+    bb.disabled=!N||!S.exclId||!slotsOk||!trapOk||S.pend;
     bb.onclick=doBlend;E.phC.appendChild(bb);
+
+    /* 🕷️ トラップ毒隠しスロット選択UI: 4枚+除外+2スロット 選択完了時に表示 */
+    if(isTrapSetupSelection() && S.selSlots.length===2){
+      var tw=mk('div','');tw.style.cssText='margin-top:6px;padding:6px;border:1px dashed rgba(212,168,67,.5);border-radius:6px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;background:rgba(107,33,168,.08)';
+      var tl=mk('span','');tl.style.cssText='font-size:10px;color:var(--gold);margin-right:4px;font-weight:bold';tl.textContent='🕷️毒を隠すスロット:';tw.appendChild(tl);
+      [0,1].forEach(function(tsIdx){
+        var slotIdx = S.selSlots[tsIdx];
+        var b=mk('button','bd '+(S.selTrapSlot===tsIdx?'sel':''));
+        b.textContent=SN[slotIdx];
+        b.disabled=S.pend;
+        b.onclick=(function(k){return function(){S.selTrapSlot=k;rPhase();};})(tsIdx);
+        tw.appendChild(b);
+      });
+      E.phC.appendChild(tw);
+    }
 
     var rb=mk('button','bd');rb.textContent='📦補充';rb.disabled=S.pend;rb.style.marginLeft='6px';rb.onclick=doRestock;E.phC.appendChild(rb);
 
@@ -1763,7 +1798,7 @@ function rHand(){
   E.handScr.innerHTML='';
   var r=S.room;var hand=r?r.myHand||[]:[];
   E.hCnt.textContent=hand.length;
-  E.hHelp.textContent=hand.length?'タップ:選択 / 長押し(右クリック):除外指定':'手札なし';
+  E.hHelp.textContent=hand.length?'タップ:選択(最大3枚、トラップ時4枚) / 長押し:除外指定':'手札なし';
   if(!hand.length){E.handScr.innerHTML='<div style="color:rgba(232,220,200,.3);font-size:11px;padding:6px">手札なし</div>';return;}
   hand.forEach(function(c){
     var cls='hc '+(CC[c.color]||'');
@@ -1784,12 +1819,43 @@ function rHand(){
 
 function tglCard(id){
   var x=S.selCards.indexOf(id);
-  if(x>=0){S.selCards.splice(x,1);if(S.exclId===id)S.exclId='';}
-  else{if(S.selCards.length>=3)return tst('最大3枚');S.selCards.push(id);if(S.selCards.length===1)S.exclId=id;}
+  if(x>=0){
+    S.selCards.splice(x,1);
+    if(S.exclId===id)S.exclId='';
+    S.selTrapSlot=-1; /* 選択が変わったらトラップスロット選択もリセット */
+  } else {
+    /* 最大4枚(トラップ時)。毒薬を含む場合のみ 4枚まで許可 */
+    var hand=(S.room&&S.room.myHand)||[];
+    var target=hand.find(function(c){return c.id===id;});
+    var currentCards=S.selCards.map(function(cid){return hand.find(function(c){return c.id===cid;});}).filter(Boolean);
+    var willBe = currentCards.concat(target||[]);
+    var willBePoisons = willBe.filter(function(c){return c&&c.type==='poison';}).length;
+    var max = (willBePoisons>=1) ? 4 : 3;
+    if(S.selCards.length>=max) return tst('最大'+max+'枚'+(willBePoisons>=1?'(トラップ)':''));
+    S.selCards.push(id);
+    if(S.selCards.length===1)S.exclId=id;
+    /* 毒薬が自動的に除外対象になってしまうのを防ぐ: 毒薬を最初に選んだ場合は exclId クリア */
+    if(S.selCards.length===1 && target && target.type==='poison') S.exclId='';
+    S.selTrapSlot=-1;
+  }
   while(S.selSlots.length>slotMaxCount()) S.selSlots.pop();
   rHand();rField();rPhase();
 }
-function setExcl(id){if(S.selCards.indexOf(id)<0){S.selCards.push(id);if(S.selCards.length>3)S.selCards.shift();}S.exclId=id;rHand();rPhase();}
+function setExcl(id){
+  var hand=(S.room&&S.room.myHand)||[];
+  var target=hand.find(function(c){return c.id===id;});
+  if(target && target.type==='poison'){ return tst('毒薬は除外コストにできません'); }
+  if(S.selCards.indexOf(id)<0){
+    var currentCards=S.selCards.map(function(cid){return hand.find(function(c){return c.id===cid;});}).filter(Boolean);
+    var willBePoisons = currentCards.filter(function(c){return c&&c.type==='poison';}).length;
+    var max = (willBePoisons>=1) ? 4 : 3;
+    if(S.selCards.length>=max){S.selCards.shift();}
+    S.selCards.push(id);
+  }
+  S.exclId=id;
+  S.selTrapSlot=-1;
+  rHand();rPhase();
+}
 
 function rLogs(){
   E.logL.innerHTML='';
