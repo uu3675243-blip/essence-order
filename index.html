@@ -529,7 +529,7 @@ function doBlend(){
       log_(st, seatName(st,seat)+' 調合→役「'+labels+'」'+(combos.length>1?' 🌟ダブル・ブレンド':'')+' 成立');
     }
     if(plan.usesSecretTrap){
-      log_(st, '🕷️シークレット・トラップ: '+seatName(st,seat)+' は'+SN[tSlots[0]]+'に毒薬を仕込んだ', {pvt:{seat:seat, pub:'――'}});
+      log_(st, '🕷️シークレット・トラップ: '+seatName(st,seat)+' は'+SN[tSlots[0]]+'に毒薬を仕込んだ', {pvt:{seat:seat, pub:''}});
     }
 
     if(lastNotePriority){
@@ -1280,7 +1280,13 @@ function buildResp(room, token){
         trapMine:!!(slot.trap&&slot.trap.poison&&String(slot.trap.owner||'')===String(seat))
       };
     }),
-    logs:(st.logs||[]).slice(-LOG_MAX).map(function(l){ var t=l&&l.text||''; if(l&&l.pvt&&String(l.pvt.seat||'')!==String(seat)) t=String(l.pvt.pub||'――'); return {at:l.at,text:t}; })
+    logs:(st.logs||[]).slice(-LOG_MAX).map(function(l){
+      if(l&&l.pvt&&String(l.pvt.seat||'')!==String(seat)){
+        var pub=l.pvt.pub; if(pub==null||pub==='') return null;
+        return {at:l.at,text:String(pub)};
+      }
+      return {at:l.at,text:(l&&l.text)||''};
+    }).filter(function(l){return !!l;})
   };
 }
 
@@ -1495,10 +1501,7 @@ function rPhase(){
 
     var rb=mk('button','bd');rb.textContent='📦補充';rb.disabled=S.pend;rb.style.marginLeft='6px';rb.onclick=doRestock;E.phC.appendChild(rb);
 
-    /* Declare */
-    if(r.myHand&&r.myHand.length<=3&&!r.myDeclared){
-      var db2=mk('button','bd');db2.textContent='💐ブルーミング宣言';db2.disabled=S.pend;db2.style.marginLeft='6px';db2.onclick=doDeclare;E.phC.appendChild(db2);
-    }
+    /* Declare は phase 共通処理側(下) で一元描画 */
     /* Volatilize (禁色/毒薬) */
     var showVol=(r.bannedColor&&r.hasBannedInHand)||r.hasPoisonInHand;
     if(showVol){
@@ -1575,6 +1578,31 @@ function rPhase(){
       var sk2=mk('button','bd');sk2.textContent='見送り';sk2.disabled=S.pend;sk2.style.marginLeft='6px';sk2.onclick=function(){doRainbowRecover(-1);};E.phC.appendChild(sk2);
     }
   }
+
+  renderBloomDeclareBtn(r);
+}
+
+function renderBloomDeclareBtn(r){
+  if(!r) return;
+  /* 手札が3枚以下になり得る全フェーズ(choose / grad_extra / harmony_recover / essence_act / rainbow_act / pending_draw)で
+     未宣言かつ手札3枚以下なら常にブルーミング宣言ボタンを表示する */
+  var ph = r.phase||'';
+  var allowed = (ph==='choose'||ph==='grad_extra'||ph==='harmony_recover'||ph==='essence_act'||ph==='rainbow_act'||ph==='pending_draw');
+  if(!allowed) return;
+  if(!(r.myHand&&r.myHand.length<=3)) return;
+  if(r.myDeclared) return;
+  var wrap = mk('div','');
+  wrap.style.cssText = 'margin-top:6px;display:flex;gap:4px;align-items:center';
+  var note = mk('span','');
+  note.style.cssText='font-size:10px;color:var(--gold);align-self:center';
+  note.textContent='💐ラスト・ノート準備:';
+  wrap.appendChild(note);
+  var db = mk('button','bd');
+  db.textContent='💐ブルーミング宣言';
+  db.disabled=S.pend;
+  db.onclick=doDeclare;
+  wrap.appendChild(db);
+  E.phC.appendChild(wrap);
 }
 
 function rHand(){
