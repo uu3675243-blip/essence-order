@@ -78,8 +78,8 @@ button{appearance:none;border:none;height:32px;padding:0 12px;border-radius:6px;
     </table>
     <p><b>ダブル・ブレンド:</b> 複数役が同時成立した場合、全効果を累積発動。</p>
     <h3>🪞 ミラー・ノート (場の特殊効果)</h3><p>場に同じ色の「1」と「12」が同時に並んだ瞬間に<b>手番の進行方向が逆転</b>します。ターン終了時に自動判定。</p>
-    <h3>🧪 不純物の混入 (毒薬をスロットに)</h3><p>毒薬を1枚スロットに置く場合に限り、そのターンの「役の成立」は免除されます。ただし、毒薬を置いたスロット以外の<b>素材2枚(スロット配置1 + 除外1)</b>が<b>ミニ・ブレンド(同色または連番)</b>を成立させている必要があります。3枚出し限定・毒薬1枚のみ。役効果は発動しません。</p>
-    <h3>☠️ 毒薬・熟成</h3><p>毒薬を場に出した瞬間、山札から<b>伏せ札2枚</b>が下に追加。そのスロットを上書きした人が毒薬+伏せ札を全回収。<br>所持中は上がり不可。</p>
+    <h3>🕷️ シークレット・トラップ</h3><p><b>3枚出し限定</b>。素材2枚+毒薬1枚を選び、素材1枚を表向きでスロットへ、毒薬1枚をその下へ<b>隠して仕込み</b>、残る素材1枚を除外します。役判定は<b>表向き素材1枚 + 他2スロット</b>で通常どおり行います。</p>
+    <h3>☠️ トラップ発動 / 安全除去</h3><p>相手がそのスロットを<b>上書き</b>または<b>回収</b>した瞬間、隠し毒薬が相手手札へ強制移動し、さらに<b>山札から1枚ドロー</b>。このドローは<b>フル・ブルームで反射されません</b>。自分の手番なら、<b>1枚出し</b>でトラップスロットを指定して安全にまとめて除去できます。</p>
     <h3>🚫 禁止色 / 💨揮発</h3><p>エッセンスで指定。1周で自動解除。揮発:禁色/毒薬1枚除外+山札2枚引く(手札+1)。</p>
     <h3>💐 ブルーミング宣言 (詳細ルール)</h3><p><b>① 宣言が必要なタイミング:</b> 手札が<b>4枚以上の状態から</b>、アクションによって<b>3枚以下</b>になったターンの終了時に宣言必須。一度宣言した後は、手札が3枚以下である限り毎ターン宣言し直す必要はなし。<br><b>② 再発動(リセット)条件:</b> 補充/攻撃(モノトーン等)/毒薬回収などで<b>手札が4枚以上に戻った場合、以前の宣言は無効(リセット)</b>。再度カードを減らして3枚以下になったらブルーミングを再宣言。<br><b>③ 失念時のペナルティ:</b> 4枚→ 3枚以下になったターンでボタンを押さずに終了しようとした場合、即座に<b>2枚強制ドロー+手番強制終了</b>。</p>
     <h3>🏆 勝利条件 (厳密)</h3><p>手札を0枚にした瞬間に勝利。上がりは必ず<b>「調合(2〜3枚出し)」かつ役成立</b>を経て。「1枚出し(除外のみ)」で手札を0枚にすることは<b>禁止</b>。不純物ルールでの上がりも禁止(毒薬所持中は上がり不可のため)。<br>上がりターンのみ、役効果と場回収は発生しません。</p>
@@ -102,7 +102,7 @@ button{appearance:none;border:none;height:32px;padding:0 12px;border-radius:6px;
    - ジ・エンド=もう1ターン(計2連続)
    - フル・ブルーム=次の自分の番まで攻撃ドロー反射
    - ブルーミング宣言(手動, 忘れて上がると2ドロー&上がり無効)
-   - 毒薬熟成: 場に置いた瞬間 伏せ札2枚が下に追加
+   - シークレット・トラップ: 素材の下に毒薬を隠して仕込み
    - 相手の毒薬所持枚数は非公開(☠表示のみ)
    ═══════════════════════════════════════════════════════════════ */
 
@@ -336,7 +336,7 @@ function startGame(){
     st.deck=shuffle(createDeck()); st.discard=[]; st.excluded=[];
     st.forceDraw=0; st.forceDrawSrc=''; st.bannedColor=''; st.bannedExpire=0;
     st.phase='choose'; st.drewThisTurn=false; st.lastDrawn=null;
-    st.field=[0,1,2].map(function(i){return {slot:SLOTS[i],card:null,stack:[]};});
+    st.field=[0,1,2].map(function(i){return {slot:SLOTS[i],card:null,stack:[],trap:null};});
     st.winnerSeat=''; st.resultSummary=''; st.finishedAt=''; st.logs=[];
     st.pendingCombos=[]; st.comboIdx=0; st.skipRoleEffects=false;
     st.players.forEach(function(p){p.hand=[];p.barrierUntil=0;p.declared='';p.reflectUntil=0;p.extraTurns=0;p.turnStartHand=0;});
@@ -347,7 +347,7 @@ function startGame(){
     while(fieldIdx<FIELD_N){
       var c=drawCard(st); if(!c)break;
       if(c.c==='P'){ st.discard.push(c); }
-      else { st.field[fieldIdx]={slot:SLOTS[fieldIdx],card:c,stack:[]}; fieldIdx++; }
+      else { st.field[fieldIdx]={slot:SLOTS[fieldIdx],card:c,stack:[],trap:null}; fieldIdx++; }
     }
     /* P1 のターン開始手札枚数を記録 */
     rememberTurnStart_(st, 'P1');
@@ -439,11 +439,10 @@ function doPDraw(){
 function doBlend(){
   if(S.pend) return;
   if(!S.selCards.length) return tst('カード選択');
-  if(!S.exclId) return tst('除外指定(長押し/右クリック)');
   var N = S.selCards.length;
-  /* 1枚出し: 除外のみ, スロット不要 */
   if(N===1){
-    var payload1 = {cardIds:S.selCards.slice(), excludeId:S.exclId, slots:[]};
+    if(!S.exclId) return tst('除外指定(長押し/右クリック)');
+    var payload1 = {cardIds:S.selCards.slice(), excludeId:S.exclId, slots:S.selSlots.slice()};
     pen(1);
     mutateRoom(S.roomId, function(room){
       var st = parseState(room.state);
@@ -453,24 +452,31 @@ function doBlend(){
       var p = player(st, seat);
       var id = payload1.cardIds[0];
       var c = findCard(p.hand, id); if(!c) throw new Error('手札にないカード');
-      if(c.c==='P') throw new Error('毒薬は調合不可(処分はデトックス/ハーモニー/エッセンス)');
+      if(c.c==='P') throw new Error('毒薬は単体調合不可(処分は揮発/エッセンス/トラップ仕込み)');
       if(st.bannedColor&&c.c===st.bannedColor) throw new Error('禁色は調合不可(揮発は可)');
-      /* ★ 「1枚出し(除外のみ)」で手札を0枚にする上がりは禁止
-         → 手札1枚の状態での1枚出しはエラーにする。 */
       if((p.hand||[]).length<=1){
         throw new Error('1枚出しで手札0枚にはできません。上がりは必ず調合(2〜3枚出し)と役成立が必要です');
       }
       removeCard(p.hand, id);
       st.excluded.push(c);
-      log_(st, seatName(st,seat)+' 1枚調合→'+fmtCard(c)+' を除外(手番終了)');
-      /* 1枚出しでは勝利判定しない → 通常のターン終了のみ */
+      var safeSlot = (payload1.slots||[]).length ? Number(payload1.slots[0]) : -1;
+      if(safeSlot>=0 && safeSlot<FIELD_N && slotHasTrap(st.field[safeSlot]) && String((st.field[safeSlot].trap||{}).owner||'')===String(seat)){
+        var s = st.field[safeSlot];
+        log_(st, seatName(st,seat)+' 1枚調合→'+fmtCard(c)+' を除外し、'+SN[safeSlot]+' のシークレット・トラップを安全除去');
+        if(s.card) st.discard.push(s.card);
+        if(s.trap&&s.trap.poison) st.discard.push(s.trap.poison);
+        (s.stack||[]).forEach(function(pc){ st.discard.push(pc); });
+        s.card=null; s.stack=[]; s.trap=null;
+      } else {
+        log_(st, seatName(st,seat)+' 1枚調合→'+fmtCard(c)+' を除外(手番終了)');
+      }
       finishTurn(st, seat);
       room.state = st;
     });
     setTimeout(function(){pen(0);clr();}, 120);
     return;
   }
-  if(S.selSlots.length !== N-1) return tst('スロット'+(N-1)+'箇所選択');
+  if(!S.exclId) return tst('除外指定(長押し/右クリック)');
   var payload = {cardIds:S.selCards.slice(), excludeId:S.exclId, slots:S.selSlots.slice()};
   pen(1);
   mutateRoom(S.roomId, function(room){
@@ -484,75 +490,37 @@ function doBlend(){
     var tSlots = (payload.slots||[]).map(Number);
     if(ids.length<2||ids.length>3) throw new Error('2〜3枚');
     if(!exId||ids.indexOf(exId)<0) throw new Error('除外カード指定必須');
-    if(tSlots.length!==ids.length-1) throw new Error('スロット数不正');
-    if(hasDup(tSlots)||tSlots.some(function(v){return v<0||v>=FIELD_N;})) throw new Error('スロット不正');
 
     var cards = ids.map(function(id){
       var c = findCard(p.hand, id); if(!c) throw new Error('手札にないカード');
-      /* ★ 不純物ルール: 毒薬を調合に使うことを許可 (スロット配置のみ) */
       if(st.bannedColor&&c.c===st.bannedColor) throw new Error('禁色は調合不可(揮発は可)');
       return cloneO(c);
     });
-    var exCard = findCard(cards, exId);
-    var remain = cards.filter(function(c){return c.id!==exId;});
+    var plan = analyzeBlend(cards, exId);
+    if(tSlots.length!==plan.expectedSlots) throw new Error('スロット数不正');
+    if(hasDup(tSlots)||tSlots.some(function(v){return v<0||v>=FIELD_N;})) throw new Error('スロット不正');
 
-    /* ★ 不純物ルールの前提チェック:
-       ① 毒薬は「除外」側には置けない(調合除外は話が那なので毒薬は「スロット配置」のみ)
-       ② 毒薬は最大11枚まで(複数毒薬の同時出しは禁) */
-    if(exCard && exCard.c==='P') throw new Error('毒薬は「除外」には配置できません(スロット配置のみ)');
-    var poisonInRemain = remain.filter(function(c){return c.c==='P';});
-    if(poisonInRemain.length>1) throw new Error('1回の調合に毒薬は1枚まで');
-    var usesImpurity = (poisonInRemain.length===1);
-
-    /* 仮想 field で役判定 */
     var fCopy = cloneO(st.field);
-    remain.forEach(function(c,i){fCopy[tSlots[i]] = {slot:SLOTS[tSlots[i]],card:cloneO(c),stack:[]};});
+    plan.visibleCards.forEach(function(c,i){
+      var si=tSlots[i];
+      fCopy[si] = {slot:SLOTS[si],card:cloneO(c),stack:[],trap:null};
+    });
     var combos = detectCombos(fCopy);
+    if(!combos.length) throw new Error('役が成立する調合のみ実行可能');
 
-    /* ★ 役不成立だが不純物ルール適用可能かを検査 */
-    if(!combos.length){
-      if(!usesImpurity) throw new Error('役が成立する調合のみ実行可能(または『不純物の混入』ルール)');
-      /* 不純物ルール: ids.length===3 、毒薬はスロット配置1枚、
-         毒薬以外の2枚(別スロット配置1枚 + 除外に回した1枚) でミニ・ブレンド成立が必要 */
-      if(ids.length!==3) throw new Error('不純物ルールは 3枚出し(毒薬1 + 素材2) のみ有効');
-      var nonPoisonRemain = remain.filter(function(c){return c.c!=='P';});
-      if(nonPoisonRemain.length!==1 || !exCard) throw new Error('不純物ルール: スロット配置=毒薬1+素材1、除外=素材1 としてください');
-      if(!isMiniBlend(nonPoisonRemain[0], exCard)){
-        throw new Error('不純物ルール: 毒薬以外の2枚がミニ・ブレンド(同色 or 連番)でない');
-      }
-      /* OK: combos は空のまま → 役効果は発動せず、スロット更新のみ */
-      log_(st, '🪴不純物の混入: '+seatName(st,seat)+' は毒薬を1枚スロットに置き役成立を免除(毒薬以外の2枚がミニ・ブレンド成立)');
-    } else if(usesImpurity){
-      throw new Error('毒薬を含む調合は『不純物ルール』のみ適用 (通常の役は毒薬を使えません)');
-    }
-
-    /* 実行 — 手札から除去 */
     cards.forEach(function(c){removeCard(p.hand, c.id);});
-    st.excluded.push(exCard);
+    if(plan.exCard) st.excluded.push(plan.exCard);
 
-    /* 上書き前のスロット内容をバックアップ (ハーモニー/レインボー 回収用) */
     var preCards = [];
-    remain.forEach(function(c,i){
+    plan.visibleCards.forEach(function(c,i){
       var si=tSlots[i]; var slot=st.field[si];
       if(slot.card) preCards.push({from:si,card:cloneO(slot.card),stack:(slot.stack||[]).map(cloneO)});
     });
     st.preOverwrite = preCards;
 
-    /* 場を上書き — 上書き時、既存カードが毒スポットなら回収 */
-    remain.forEach(function(c,i){
-      var si=tSlots[i]; var slot=st.field[si];
-      if(slot.card && slot.card.c==='P'){
-        /* 毒スポット上書き → 毒薬+伏せ札を回収 */
-        receivePoison(st, seat, slot.card);
-        (slot.stack||[]).forEach(function(pc){ p.hand.push(pc); });
-        sortHand(p.hand);
-        resetDeclareIfFull_(st, seat);
-        log_(st, seatName(st,seat)+' 毒スポット上書き→毒薬+伏せ札'+((slot.stack||[]).length)+'枚 引取');
-      } else if(slot.card){
-        st.discard.push(slot.card);
-        (slot.stack||[]).forEach(function(pc){ st.discard.push(pc); });
-      }
-      slot.card=cloneO(c); slot.stack=[];
+    var lastNotePriority = (p.hand.length===0);
+    plan.visibleCards.forEach(function(c,i){
+      overwriteFieldSlot(st, seat, tSlots[i], c, (plan.usesSecretTrap && i===0)?plan.hiddenPoison:null, lastNotePriority);
     });
     sortHand(p.hand);
 
@@ -560,20 +528,14 @@ function doBlend(){
       var labels = combos.map(function(x){return x.label;}).join(' + ');
       log_(st, seatName(st,seat)+' 調合→役「'+labels+'」'+(combos.length>1?' 🌟ダブル・ブレンド':'')+' 成立');
     }
-
-    /* ★ 上がり判定: 不純物ルール上がりは禁止 */
-    if(p.hand.length===0){
-      if(usesImpurity){
-        /* 不純物での上がりは無効 (そもそも毒薬をスロットに置いた = 直前まで毒薬を持っていた = 上がり不可条件)
-           フリークのため明示チェック. ターンは普通に終了する */
-        log_(st, '❌'+seatName(st,seat)+' 不純物ルールでの上がりは禁止されています');
-      } else {
-        if(handEmptyWinCheck(st, seat)){ room.state=st; return; }
-        /* ブルーミング失念でドローされた場合は continue */
-      }
+    if(plan.usesSecretTrap){
+      log_(st, '🕷️シークレット・トラップ: '+seatName(st,seat)+' は'+SN[tSlots[0]]+'に毒薬を仕込んだ', {pvt:{seat:seat, pub:'――'}});
     }
 
-    /* 役効果を順番に処理 (不純物ルールは combos=空 なので無処理で finishTurn へ) */
+    if(lastNotePriority){
+      if(handEmptyWinCheck(st, seat)){ room.state=st; return; }
+    }
+
     st.pendingCombos = combos.map(function(x){return x.type;});
     st.comboIdx = 0;
     runNextCombo(st, seat, room);
@@ -742,7 +704,7 @@ function doHarmonyPass(){
 }
 
 /* ─── エッセンス: 場から1枚回収 + 禁色指定 + 毒譲渡 ─── */
-function doEssence(recoverIdx, bannedColor, poisonTarget){
+function doEssence(recoverIdx, bannedColor){
   if(S.pend) return;
   pen(1);
   mutateRoom(S.roomId, function(room){
@@ -754,50 +716,29 @@ function doEssence(recoverIdx, bannedColor, poisonTarget){
     var banned = normColor(bannedColor);
     if(!banned) throw new Error('禁色指定必須');
 
-    /* 場から1枚回収(任意) */
     var ri = Number(recoverIdx);
     if(ri>=0 && ri<FIELD_N){
-      var slot = st.field[ri];
-      if(slot && slot.card){
-        if(slot.card.c==='P'){
-          /* 毒スポットの回収はなし: 毒譲渡側で処理 */
-        } else {
-          p.hand.push(cloneO(slot.card)); sortHand(p.hand); resetDeclareIfFull_(st, seat);
-          log_(st,'エッセンス：場の'+fmtCard(slot.card)+' を手札に回収');
-          st.discard.push.apply(st.discard, slot.stack||[]);
-          slot.card=null; slot.stack=[];
-          /* 補填: 山札から1枚 */
-          var c = drawCard(st);
-          if(c){
-            if(c.c==='P'){ st.discard.push(c); c=drawCard(st); if(c) slot.card=c; }
-            else slot.card=c;
-          }
-          slot.stack=[];
+      if(recoverFieldSlot(st, seat, ri, 'エッセンス')){
+      } else {
+        var slot = st.field[ri];
+        if(slot && slot.card && slot.card.c==='P'){
+          log_(st,'エッセンス：毒薬スロットは場回収できません');
         }
       }
     }
 
-    /* 毒スポット譲渡 */
-    var pt = poisonTarget!=null ? String(poisonTarget) : '-1';
-    if(pt!=='-1' && pt!==''){
-      st.field.forEach(function(slot){
-        if(slot&&slot.card&&slot.card.c==='P'){
-          var ts = validTarget(st, pt, seat);
-          if(ts){
-            receivePoison(st, ts, slot.card);
-            (slot.stack||[]).forEach(function(pc){ st.discard.push(pc); });
-            slot.card=null; slot.stack=[];
-            /* 補填 */
-            var c = drawCard(st);
-            if(c){
-              if(c.c==='P'){ st.discard.push(c); c=drawCard(st); if(c) slot.card=c; }
-              else slot.card=c;
-            }
-            slot.stack=[];
-            log_(st,'エッセンス：毒スポットを'+seatName(st,ts)+'に譲渡');
-          }
-        }
+    var ts = nextSeat(st, seat);
+    var target = player(st, ts);
+    var poisons = (p.hand||[]).filter(function(c){return c.c==='P';}).map(cloneO);
+    if(target && poisons.length){
+      poisons.forEach(function(pc){
+        removeCard(p.hand, pc.id);
+        receivePoison(st, ts, pc);
       });
+      sortHand(p.hand); sortHand(target.hand);
+      log_(st,'エッセンス：☠毒薬'+poisons.length+'枚を'+seatName(st,ts)+'へ強制譲渡');
+    } else {
+      log_(st,'エッセンス：譲渡する毒薬なし');
     }
 
     st.bannedColor=banned; st.bannedExpire=st.turnSerial+st.players.length;
@@ -875,21 +816,8 @@ function doRainbowRecover(slotIdx){
     var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
     assertTurn(st, seat); normalizeT(st);
     if(st.phase!=='rainbow_act') throw new Error('レインボーフェイズではない');
-    var p = player(st, seat);
     if(slotIdx>=0 && slotIdx<FIELD_N){
-      var slot = st.field[slotIdx];
-      if(slot && slot.card && slot.card.c!=='P'){
-        p.hand.push(cloneO(slot.card)); sortHand(p.hand); resetDeclareIfFull_(st, seat);
-        log_(st,'レインボー：場の'+fmtCard(slot.card)+' を回収');
-        st.discard.push.apply(st.discard, slot.stack||[]);
-        slot.card=null; slot.stack=[];
-        var c = drawCard(st);
-        if(c){
-          if(c.c==='P'){ st.discard.push(c); c=drawCard(st); if(c) slot.card=c; }
-          else slot.card=c;
-        }
-        slot.stack=[];
-      }
+      if(!recoverFieldSlot(st, seat, slotIdx, 'レインボー')) log_(st,'レインボー：回収可能カードなし');
     } else log_(st,'レインボー：場回収を見送り');
     st.phase='choose';
     st.rainbowStage='';
@@ -947,24 +875,6 @@ function doDeclare(){
 function handEmptyWinCheck(st, seat){
   var p = player(st, seat);
   if(!p || p.hand.length>0) return false;
-  /* ★ 毒薬所持中は勝利不可 (hand.length===0 なら毒薬もないはずだが安全チェック) */
-  if((p.hand||[]).some(function(c){return c.c==='P';})) return false;
-  /* ★ ブルーミング失念判定:
-     「ターン開始手札が4枚以上、終了3枚以下になる」条件を満たしていたのに宣言なし → 無効
-     (手札4枚以上から一気に0まで行けるケースはここでは宣言不要 → 直接勝利) */
-  var declNeeded = Number(p.turnStartHand||0)>=4 && !p.declared;
-  if(declNeeded){
-    /* ペナルティ: 2枚ドロー & 上がり無効 */
-    drawToHand(st, seat, 2);
-    log_(st, '❌'+seatName(st,seat)+' ブルーミング宣言忘れ！上がり無効+2枚ドローペナルティ',
-      {pvt:{seat:seat, pub:seatName(st,seat)+' ブルーミング失念！上がり無効+2枚ドロー'}});
-    /* 連続役処理があればスキップしてターン終了 */
-    st.pendingCombos=[]; st.comboIdx=0;
-    st.phase='choose'; st.rainbowStage='';
-    finishTurn(st, seat);
-    return true;
-  }
-  /* 正当な勝利 */
   st.status='ended'; st.winnerSeat=seat;
   st.resultSummary=seatName(st, seat)+' の勝利！ラスト・ノートが完成した 🎵';
   st.finishedAt=new Date().toISOString();
@@ -1062,6 +972,88 @@ function isMiniBlend(c1,c2){
   if(Math.abs(a-b)===1) return true;
   if((a===12&&b===1)||(a===1&&b===12)) return true;
   return false;
+}
+
+function analyzeBlend(cards, exId){
+  var exCard = findCard(cards, exId);
+  if(!exCard) throw new Error('除外カード指定必須');
+  var remain = cards.filter(function(c){return c.id!==exId;}).map(cloneO);
+  var poisons = cards.filter(function(c){return c.c==='P';});
+  var plan = {exCard:cloneO(exCard), visibleCards:remain.map(cloneO), hiddenPoison:null, usesSecretTrap:false, expectedSlots:remain.length};
+  if(!poisons.length) return plan;
+  if(poisons.length>1) throw new Error('1回の調合に毒薬は1枚まで');
+  if(cards.length!==3) throw new Error('シークレット・トラップは 3枚出し(素材2+毒薬1) のみ有効');
+  if(exCard.c==='P') throw new Error('シークレット・トラップでは素材カードを除外指定してください');
+  var remainPoison = remain.filter(function(c){return c.c==='P';});
+  var remainMaterial = remain.filter(function(c){return c.c!=='P';});
+  if(remainPoison.length!==1 || remainMaterial.length!==1) throw new Error('シークレット・トラップ: 配置=素材1+毒薬1、除外=素材1 としてください');
+  plan.visibleCards = [cloneO(remainMaterial[0])];
+  plan.hiddenPoison = cloneO(remainPoison[0]);
+  plan.usesSecretTrap = true;
+  plan.expectedSlots = 1;
+  return plan;
+}
+function slotHasTrap(slot){ return !!(slot && slot.trap && slot.trap.poison); }
+function refillFieldSlotAvoidPoison(st, slot){
+  var c = drawCard(st);
+  if(c){
+    if(c.c==='P'){ st.discard.push(c); c=drawCard(st); if(c) slot.card=c; else slot.card=null; }
+    else slot.card=c;
+  } else slot.card=null;
+  slot.stack=[];
+}
+function overwriteFieldSlot(st, seat, slotIdx, newCard, hiddenPoison, suppressTrap){
+  var slot = st.field[slotIdx];
+  if(!slot) return;
+  if(slot.card && slot.card.c==='P'){
+    if(!suppressTrap){
+      receivePoison(st, seat, slot.card);
+      (slot.stack||[]).forEach(function(pc){ player(st, seat).hand.push(pc); });
+      sortHand(player(st, seat).hand);
+      resetDeclareIfFull_(st, seat);
+      log_(st, seatName(st,seat)+' 毒スポット上書き→毒薬+伏せ札'+((slot.stack||[]).length)+'枚 引取');
+    } else {
+      st.discard.push(slot.card);
+      (slot.stack||[]).forEach(function(pc){ st.discard.push(pc); });
+    }
+  } else {
+    if(slotHasTrap(slot)){
+      if(!suppressTrap && slot.trap.owner && slot.trap.owner!==seat){
+        receivePoison(st, seat, cloneO(slot.trap.poison));
+        drawToHand(st, seat, 1);
+        log_(st,'🕷️シークレット・トラップ発動: '+seatName(st,seat)+' は'+SN[slotIdx]+'で☠毒薬を受け取り+1ドロー');
+      } else {
+        st.discard.push(slot.trap.poison);
+      }
+      slot.trap=null;
+    }
+    if(slot.card) st.discard.push(slot.card);
+    (slot.stack||[]).forEach(function(pc){ st.discard.push(pc); });
+  }
+  slot.card=cloneO(newCard); slot.stack=[];
+  slot.trap=hiddenPoison?{poison:cloneO(hiddenPoison),owner:seat}:null;
+}
+function recoverFieldSlot(st, seat, slotIdx, label){
+  if(!(slotIdx>=0 && slotIdx<FIELD_N)) return false;
+  var slot = st.field[slotIdx];
+  if(!slot || !slot.card || slot.card.c==='P') return false;
+  var p = player(st, seat); if(!p) return false;
+  if(slotHasTrap(slot)){
+    if(slot.trap.owner && slot.trap.owner!==seat){
+      receivePoison(st, seat, cloneO(slot.trap.poison));
+      drawToHand(st, seat, 1);
+      log_(st,'🕷️シークレット・トラップ発動: '+seatName(st,seat)+' は'+SN[slotIdx]+'の回収で☠毒薬を受け取り+1ドロー');
+    } else {
+      st.discard.push(slot.trap.poison);
+    }
+    slot.trap=null;
+  }
+  p.hand.push(cloneO(slot.card)); sortHand(p.hand); resetDeclareIfFull_(st, seat);
+  log_(st,label+'：場の'+fmtCard(slot.card)+' を回収');
+  st.discard.push.apply(st.discard, slot.stack||[]);
+  slot.card=null; slot.stack=[];
+  refillFieldSlotAvoidPoison(st, slot);
+  return true;
 }
 
 function maturePoisonSpots(st){
@@ -1169,7 +1161,7 @@ function emptyState(rid, cfg, players){
     roomId:rid, settings:cfg, status:'waiting',
     players:(players||[]).map(function(p){return {seat:p.seat,token:p.token,name:p.name,hand:[],barrierUntil:0,declared:'',reflectUntil:0,extraTurns:0,turnStartHand:0};}),
     deck:[], discard:[], excluded:[],
-    field:[0,1,2].map(function(i){return {slot:SLOTS[i],card:null,stack:[]};}),
+    field:[0,1,2].map(function(i){return {slot:SLOTS[i],card:null,stack:[],trap:null};}),
     turnSeat:'P1', turnSerial:1, turnDir:1, forceDraw:0, forceDrawSrc:'', selfForceDraw:0,
     bannedColor:'', bannedExpire:0, phase:'choose',
     drewThisTurn:false, lastDrawn:null,
@@ -1188,9 +1180,9 @@ function parseState(t){
   s.players = s.players||[];
   s.deck = s.deck||[]; s.discard = s.discard||[]; s.excluded = s.excluded||[];
   s.logs = s.logs||[]; s.phase = s.phase||'choose';
-  s.field = s.field||[0,1,2].map(function(i){return {slot:SLOTS[i],card:null,stack:[]};});
-  s.field = s.field.map(function(f,i){ return f||{slot:SLOTS[i],card:null,stack:[]}; });
-  s.field.forEach(function(f){ if(!f.stack) f.stack=[]; });
+  s.field = s.field||[0,1,2].map(function(i){return {slot:SLOTS[i],card:null,stack:[],trap:null};});
+  s.field = s.field.map(function(f,i){ return f||{slot:SLOTS[i],card:null,stack:[],trap:null}; });
+  s.field.forEach(function(f){ if(!f.stack) f.stack=[]; if(!f.trap) f.trap=null; });
   s.players.forEach(function(p){ if(!p.hand) p.hand=[]; if(p.extraTurns==null) p.extraTurns=0; if(p.reflectUntil==null) p.reflectUntil=0; if(p.turnStartHand==null) p.turnStartHand=(p.hand||[]).length; });
   s.pendingCombos = s.pendingCombos||[];
   s.comboIdx = s.comboIdx||0;
@@ -1284,10 +1276,11 @@ function buildResp(room, token){
         colorName:CMETA[c.c]?CMETA[c.c].name:'',
         type:c.c==='P'?'poison':'material',
         label:c.c==='P'?'☠毒薬':CMETA[c.c].e+CMETA[c.c].name+c.v,
-        id:c.id, stackCount:(slot.stack||[]).length
+        id:c.id, stackCount:(slot.stack||[]).length,
+        trapMine:!!(slot.trap&&slot.trap.poison&&String(slot.trap.owner||'')===String(seat))
       };
     }),
-    logs:(st.logs||[]).slice(-LOG_MAX)
+    logs:(st.logs||[]).slice(-LOG_MAX).map(function(l){ var t=l&&l.text||''; if(l&&l.pvt&&String(l.pvt.seat||'')!==String(seat)) t=String(l.pvt.pub||'――'); return {at:l.at,text:t}; })
   };
 }
 
@@ -1309,7 +1302,7 @@ function buildMsg(st, seat){
   if(st.phase==='pending_draw') return '⚠️ '+(st.forceDrawSrc||'強制')+'：'+st.forceDraw+'枚ドロー → 続けて通常ターン';
   if(st.phase==='grad_extra') return '🎨 グラデーション：手札1枚を追加除外';
   if(st.phase==='harmony_recover') return '🎵 ハーモニー：上書き前の場カードを1枚回収';
-  if(st.phase==='essence_act') return '✨ エッセンス：場1枚回収+禁色指定+毒譲渡(任意)';
+  if(st.phase==='essence_act') return '✨ エッセンス：場1枚回収+禁色指定+毒薬を次手番へ強制譲渡';
   if(st.phase==='rainbow_act') return '🌈 レインボー・ラン：手札排除/毒消滅/場回収';
   if(st.bannedColor) return '🚫 禁色：'+CMETA[st.bannedColor].name+'。禁色は調合不可(揮発可)';
   return '⚗️ 調合(1〜3枚) or 補充(1枚)';
@@ -1442,18 +1435,38 @@ function rField(){
     if(c){
       var sc=c.type==='poison'?'#6b21a8':({R:'#c0392b',B:'#2874a6',Y:'#b7950b',G:'#1e8449'}[c.color]||'#666');
       d.innerHTML+='<div class="sEmoji">'+esc(c.emoji)+'</div><div class="sNum" style="color:'+sc+'">'+(c.type==='poison'?'☠':c.number)+'</div><div class="sName">'+esc(c.colorName)+'</div>';
-      if(c.stackCount>0) d.innerHTML+='<div class="sStack">🍷×'+c.stackCount+'</div>';
+      if(c.stackCount>0) d.innerHTML+='<div class="sStack">🍷×'+c.stackCount+'</div>'; if(c.trapMine) d.innerHTML+='<div class="sStack" style="left:6px;right:auto;color:#6b21a8">🕷️</div>';
     } else d.innerHTML+='<div class="sEmoji" style="opacity:.3">—</div>';
     if(canSel) d.onclick=function(){tglSlot(i);};
     E.slots.appendChild(d);
   });
   E.comboLbl.textContent=r&&r.currentCombos?'✦'+r.currentCombos:'';
 }
+function currentSelCards(){ var hand=(S.room&&S.room.myHand)||[]; return S.selCards.map(function(id){ return hand.find(function(c){return c.id===id;}); }).filter(Boolean); }
+function isTrapSetupSelection(){
+  var cards=currentSelCards();
+  if(cards.length!==3 || !S.exclId) return false;
+  var poisons=cards.filter(function(c){return c.type==='poison';});
+  if(poisons.length!==1) return false;
+  var ex=cards.find(function(c){return c.id===S.exclId;});
+  if(!ex || ex.type==='poison') return false;
+  var remain=cards.filter(function(c){return c.id!==S.exclId;});
+  return remain.length===2 && remain.filter(function(c){return c.type==='poison';}).length===1 && remain.filter(function(c){return c.type!=='poison';}).length===1;
+}
+function slotNeedCount(){
+  var n=S.selCards.length;
+  if(n<=0) return 0;
+  if(n===1) return 0;
+  if(n===2) return 1;
+  if(n===3) return isTrapSetupSelection()?1:2;
+  return Math.max(0,n-1);
+}
+function slotMaxCount(){ return S.selCards.length===1 ? 1 : slotNeedCount(); }
 function tglSlot(i){
   var x=S.selSlots.indexOf(i);
   if(x>=0)S.selSlots.splice(x,1);
   else{
-    var max = Math.max(0, S.selCards.length-1);
+    var max = slotMaxCount();
     if(S.selSlots.length>=max) return tst('スロット'+max+'枚まで');
     S.selSlots.push(i);
   }
@@ -1471,12 +1484,12 @@ function rPhase(){
     E.phD.textContent='⚗️ 調合(1〜3枚)'+banInfo;
     var N=S.selCards.length;var nd=N>1?N-1:0;
     var info=mk('div','');info.style.cssText='font-size:10px;color:var(--gold);margin-bottom:6px';
-    if(N===1) info.textContent='選択1 除外:'+(S.exclId?'✓':'❌')+' [1枚出し=除外のみ+手番終了]';
-    else info.textContent='選択'+N+' 除外:'+(S.exclId?'✓':'❌')+' スロット:'+S.selSlots.length+'/'+nd;
+    if(N===1) info.textContent='選択1 除外:'+(S.exclId?'✓':'❌')+' スロット:'+S.selSlots.length+'/1 [1枚出し=除外のみ / トラップ指定で安全除去]';
+    else info.textContent='選択'+N+' 除外:'+(S.exclId?'✓':'❌')+' スロット:'+S.selSlots.length+'/'+slotNeedCount()+(isTrapSetupSelection()?' [シークレット・トラップ]':'');
     E.phC.appendChild(info);
 
     var bb=mk('button','bg');bb.textContent='⚗️調合';
-    var slotsOk = (N===1)?true:(S.selSlots.length===nd);
+    var slotsOk = (N===1)?(S.selSlots.length<=1):(S.selSlots.length===slotNeedCount());
     bb.disabled=!N||!S.exclId||!slotsOk||S.pend;
     bb.onclick=doBlend;E.phC.appendChild(bb);
 
@@ -1519,7 +1532,7 @@ function rPhase(){
     var sk=mk('button','bd');sk.textContent='見送り';sk.disabled=S.pend;sk.style.marginLeft='6px';
     sk.onclick=doHarmonyPass;E.phC.appendChild(sk);
   } else if(ph==='essence_act'){
-    E.phD.textContent='✨ エッセンス：場回収(任意)+禁色+毒譲渡(任意)';
+    E.phD.textContent='✨ エッセンス：場回収(任意)+禁色+毒薬を次手番へ強制譲渡';
     /* 場回収選択 */
     var w0=mk('div','');w0.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px';
     var nl0=mk('span','');nl0.style.cssText='font-size:10px;color:var(--gold);align-self:center';nl0.textContent='場回収:';w0.appendChild(nl0);
@@ -1536,20 +1549,8 @@ function rPhase(){
       var b=mk('button','bd '+(S.selBan===col?'sel':''));b.textContent=CE[col]+CN[col];b.onclick=(function(cc){return function(){S.selBan=cc;rPhase();};})(col);w2.appendChild(b);
     });
     E.phC.appendChild(w2);
-    /* 毒譲渡 */
-    var hasFieldPoison=(r.field||[]).some(function(c){return c&&c.type==='poison';});
-    if(hasFieldPoison){
-      var w3=mk('div','');w3.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px';
-      var nl=mk('span','');nl.style.cssText='font-size:10px;color:var(--gold);align-self:center';nl.textContent='毒スポット譲渡先:';w3.appendChild(nl);
-      var nb=mk('button','bd '+(S.selPoisonTarget===-1?'sel':''));nb.textContent='なし(捨)';nb.onclick=function(){S.selPoisonTarget=-1;rPhase();};w3.appendChild(nb);
-      r.players.forEach(function(p){
-        if(p.isYou)return;
-        var b=mk('button','bd '+(S.selPoisonTarget===p.seat?'sel':''));b.textContent=p.name;b.onclick=(function(seat){return function(){S.selPoisonTarget=seat;rPhase();};})(p.seat);w3.appendChild(b);
-      });
-      E.phC.appendChild(w3);
-    }
     var go=mk('button','bg');go.textContent='✨決定';go.disabled=!S.selBan||S.pend;
-    go.onclick=function(){doEssence(S.selRecover,S.selBan,S.selPoisonTarget);};E.phC.appendChild(go);
+    go.onclick=function(){doEssence(S.selRecover,S.selBan);};E.phC.appendChild(go);
   } else if(ph==='rainbow_act'){
     var stage = r.rainbowStage||'ex1';
     if(stage==='ex1'||stage==='ex2'){
@@ -1603,7 +1604,7 @@ function tglCard(id){
   var x=S.selCards.indexOf(id);
   if(x>=0){S.selCards.splice(x,1);if(S.exclId===id)S.exclId='';}
   else{if(S.selCards.length>=3)return tst('最大3枚');S.selCards.push(id);if(S.selCards.length===1)S.exclId=id;}
-  while(S.selSlots.length>Math.max(0,S.selCards.length-1)) S.selSlots.pop();
+  while(S.selSlots.length>slotMaxCount()) S.selSlots.pop();
   rHand();rField();rPhase();
 }
 function setExcl(id){if(S.selCards.indexOf(id)<0){S.selCards.push(id);if(S.selCards.length>3)S.selCards.shift();}S.exclId=id;rHand();rPhase();}
