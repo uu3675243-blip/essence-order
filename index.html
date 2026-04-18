@@ -394,7 +394,10 @@ function doRestock(){
   setTimeout(function(){pen(0);clr();}, 120);
 }
 
-/* ─── 強制ドロー (モノトーン等) ─── */
+/* ─── 強制ドロー (モノトーン等) ───
+   仕様: 強制ドロー (モノトーン2枚ドロー等) を受けたプレイヤーは、ドロー後に
+   「通常のアクション (補充 or 調合) を行う」ことができる。
+   つまり、スキップされず自分の行動ターンとしてそのまま継続する。 */
 function doPDraw(){
   if(S.pend) return;
   pen(1);
@@ -406,9 +409,13 @@ function doPDraw(){
     var cnt = st.forceDraw;
     var src = st.forceDrawSrc||'強制';
     drawToHand(st, seat, cnt);
-    log_(st, seatName(st,seat)+' は'+src+'で'+cnt+'枚補充');
+    log_(st, seatName(st,seat)+' は'+src+'で'+cnt+'枚ドロー → 続けて通常ターン');
     st.forceDraw=0; st.forceDrawSrc='';
-    finishTurn(st, seat);
+    /* ★ 修正: finishTurn で次プレイヤーへ進めず、choose フェイズに戻して
+       同じプレイヤー(強制ドローを受けた側)が通常アクションを実行できるようにする。 */
+    st.phase='choose';
+    st.drewThisTurn=false;  /* ドロー後も補充/調合とも可能にする */
+    st.lastDrawn=null;
     room.state = st;
   });
   setTimeout(function(){pen(0);clr();}, 120);
@@ -555,7 +562,7 @@ function applyCombo(st, seat, type){
     } else {
       st.forceDraw = (st.forceDraw||0) + 2;
       st.forceDrawSrc = 'モノトーン';
-      log_(st,'モノトーン効果：次手番('+seatName(st,ns)+')は '+st.forceDraw+'枚ドロー');
+      log_(st,'モノトーン効果：次手番('+seatName(st,ns)+')は '+st.forceDraw+'枚ドロー後、通常ターン(補充/調合 可)');
     }
     return null;
   }
@@ -1190,7 +1197,7 @@ function buildMsg(st, seat){
   if(st.status==='ended') return '🏆 '+st.resultSummary;
   if(!seat) return seatName(st, st.turnSeat)+' の手番です';
   if(seat!==st.turnSeat) return '⏳ '+seatName(st, st.turnSeat)+' の手番を待っています';
-  if(st.phase==='pending_draw') return '⚠️ '+(st.forceDrawSrc||'強制')+'：'+st.forceDraw+'枚引いてターン終了';
+  if(st.phase==='pending_draw') return '⚠️ '+(st.forceDrawSrc||'強制')+'：'+st.forceDraw+'枚ドロー → 続けて通常ターン';
   if(st.phase==='grad_extra') return '🎨 グラデーション：手札1枚を追加除外';
   if(st.phase==='harmony_recover') return '🎵 ハーモニー：上書き前の場カードを1枚回収';
   if(st.phase==='essence_act') return '✨ エッセンス：場1枚回収+禁色指定+毒譲渡(任意)';
@@ -1360,7 +1367,7 @@ function rPhase(){
       E.phC.appendChild(vw);
     }
   } else if(ph==='pending_draw'){
-    E.phD.textContent='⚠️'+(r.forceDrawSrc||'強制')+'で'+(r.pendingDrawCount||0)+'枚強制ドロー';
+    E.phD.textContent='⚠️'+(r.forceDrawSrc||'強制')+'で'+(r.pendingDrawCount||0)+'枚ドロー → 続けて通常ターン(補充/調合)';
     var pb=mk('button','br');pb.textContent=(r.pendingDrawCount||0)+'枚引く';pb.disabled=S.pend;pb.onclick=doPDraw;E.phC.appendChild(pb);
   } else if(ph==='grad_extra'){
     E.phD.textContent='🎨 グラデーション追加除外(素材のみ/毒薬不可)';
