@@ -56,7 +56,7 @@ button{appearance:none;border:none;height:32px;padding:0 12px;border-radius:6px;
 <div class="pills"><span class="pl" id="plTurn">手番:-</span><span class="pl" id="plPhase">-</span><span class="pl" id="plDeck">山:0</span><span class="pl" id="plDisc">捨:0</span><span class="pl" id="plExcl">除:0</span><span class="pl" id="plBan" style="display:none">🚫-</span><span class="pl" id="plExtra" style="display:none">↻連続ターン</span><span class="pl" id="plBloom" style="display:none">💐</span></div>
 <div class="msg" id="msg">🧪 工房を作成 or 参加</div>
 <div class="pRow" id="pRow"></div>
-<div class="fieldBox"><h2>🍄 香りのノート <span id="comboLbl" class="comboLbl"></span></h2><div class="slots" id="slots"></div></div>
+<div class="fieldBox"><h2>🍯 香りのノート <span id="comboLbl" class="comboLbl"></span></h2><div class="slots" id="slots"></div></div>
 <div class="phBox" id="phBox"><div class="phT" id="phT">-</div><div class="phD" id="phD">-</div><div class="actRow" id="phC"></div></div>
 <div class="handBox"><div class="handH"><div class="t">📜 手札 <span id="hCnt">0</span>枚</div><div class="s" id="hHelp">-</div></div><div class="handScr" id="handScr"></div></div>
 <div class="btmBox">
@@ -77,10 +77,13 @@ button{appearance:none;border:none;height:32px;padding:0 12px;border-radius:6px;
     <tr><td>フル・ブルーム</td><td>合計=21</td><td>攻撃ドロー反射(次の自分の番まで)</td></tr>
     </table>
     <p><b>ダブル・ブレンド:</b> 複数役が同時成立した場合、全効果を累積発動。</p>
+    <h3>🪞 ミラー・ノート (場の特殊効果)</h3><p>場に同じ色の「1」と「12」が同時に並んだ瞬間に<b>手番の進行方向が逆転</b>します。ターン終了時に自動判定。</p>
+    <h3>🧪 不純物の混入 (毒薬をスロットに)</h3><p>毒薬を1枚スロットに置く場合に限り、そのターンの「役の成立」は免除されます。ただし、毒薬を置いたスロット以外の<b>素材2枚(スロット配置1 + 除外1)</b>が<b>ミニ・ブレンド(同色または連番)</b>を成立させている必要があります。3枚出し限定・毒薬1枚のみ。役効果は発動しません。</p>
     <h3>☠️ 毒薬・熟成</h3><p>毒薬を場に出した瞬間、山札から<b>伏せ札2枚</b>が下に追加。そのスロットを上書きした人が毒薬+伏せ札を全回収。<br>所持中は上がり不可。</p>
     <h3>🚫 禁止色 / 💨揮発</h3><p>エッセンスで指定。1周で自動解除。揮発:禁色/毒薬1枚除外+山札2枚引く(手札+1)。</p>
-    <h3>💐 ブルーミング宣言</h3><p>手札<b>3枚以下</b>で宣言可能(手動)。宣言せずに上がると<b>2枚ドローペナルティ+上がり無効</b>。</p>
-    <h3>🏆 勝利条件</h3><p>手札を0枚にした瞬間に勝利(ラスト・ノート)。<br>上がりターンのみ、役効果と場回収は発生しない(純粋に調合のみ)。</p>
+    <h3>💐 ブルーミング宣言 (詳細ルール)</h3><p><b>① 宣言が必要なタイミング:</b> 手札が<b>4枚以上の状態から</b>、アクションによって<b>3枚以下</b>になったターンの終了時に宣言必須。一度宣言した後は、手札が3枚以下である限り毎ターン宣言し直す必要はなし。<br><b>② 再発動(リセット)条件:</b> 補充/攻撃(モノトーン等)/毒薬回収などで<b>手札が4枚以上に戻った場合、以前の宣言は無効(リセット)</b>。再度カードを減らして3枚以下になったらブルーミングを再宣言。<br><b>③ 失念時のペナルティ:</b> 4枚→ 3枚以下になったターンでボタンを押さずに終了しようとした場合、即座に<b>2枚強制ドロー+手番強制終了</b>。</p>
+    <h3>🏆 勝利条件 (厳密)</h3><p>手札を0枚にした瞬間に勝利。上がりは必ず<b>「調合(2〜3枚出し)」かつ役成立</b>を経て。「1枚出し(除外のみ)」で手札を0枚にすることは<b>禁止</b>。不純物ルールでの上がりも禁止(毒薬所持中は上がり不可のため)。<br>上がりターンのみ、役効果と場回収は発生しません。</p>
+    <h3>🔇 記録の秘匿</h3><p>「補充」関連の具体内容(引いたカード)は本人にのみ見えます。相手には「プレイヤーが補充(記録非公開)」の表示のみ。</p>
   </div></div>
 </div></div>
 <div id="toast" class="toast"></div>
@@ -329,14 +332,14 @@ function startGame(){
     if(st.status!=='waiting') throw new Error('既に開始済み');
     if(seat!=='P1') throw new Error('作成者のみ開始可能');
     if(st.players.length<2) throw new Error('2人以上必要');
-    st.status='playing'; st.turnSeat='P1'; st.turnSerial=1;
+    st.status='playing'; st.turnSeat='P1'; st.turnSerial=1; st.turnDir=1;
     st.deck=shuffle(createDeck()); st.discard=[]; st.excluded=[];
     st.forceDraw=0; st.forceDrawSrc=''; st.bannedColor=''; st.bannedExpire=0;
     st.phase='choose'; st.drewThisTurn=false; st.lastDrawn=null;
     st.field=[0,1,2].map(function(i){return {slot:SLOTS[i],card:null,stack:[]};});
     st.winnerSeat=''; st.resultSummary=''; st.finishedAt=''; st.logs=[];
     st.pendingCombos=[]; st.comboIdx=0; st.skipRoleEffects=false;
-    st.players.forEach(function(p){p.hand=[];p.barrierUntil=0;p.declared='';p.reflectUntil=0;p.extraTurns=0;});
+    st.players.forEach(function(p){p.hand=[];p.barrierUntil=0;p.declared='';p.reflectUntil=0;p.extraTurns=0;p.turnStartHand=0;});
     /* 初期手札 10枚ずつ */
     for(var i=0;i<HAND_SIZE;i++) st.players.forEach(function(p){ drawToHand(st,p.seat,1); });
     /* 初期場札: 毒薬を除いて3枚 */
@@ -346,6 +349,8 @@ function startGame(){
       if(c.c==='P'){ st.discard.push(c); }
       else { st.field[fieldIdx]={slot:SLOTS[fieldIdx],card:c,stack:[]}; fieldIdx++; }
     }
+    /* P1 のターン開始手札枚数を記録 */
+    rememberTurnStart_(st, 'P1');
     log_(st,'対局開始。'+seatName(st,'P1')+' の手番です');
     room.state = st;
   });
@@ -361,7 +366,7 @@ function resetRoom(){
     var seat = seatByTk(st, S.token);
     if(!seat) throw new Error('参加者ではありません');
     if(seat!=='P1') throw new Error('作成者のみリセット可能');
-    var players = st.players.map(function(p){return {seat:p.seat,token:p.token,name:p.name,hand:[],barrierUntil:0,declared:'',reflectUntil:0,extraTurns:0};});
+    var players = st.players.map(function(p){return {seat:p.seat,token:p.token,name:p.name,hand:[],barrierUntil:0,declared:'',reflectUntil:0,extraTurns:0,turnStartHand:0};});
     var ns = emptyState(room.roomId, cfg, players);
     log_(ns,'ルームを初期化しました');
     room.state = ns;
@@ -386,8 +391,13 @@ function doRestock(){
     var c = drawCard(st); if(!c) throw new Error('山札なし');
     p.hand.push(c); sortHand(p.hand);
     st.lastDrawn=c.id;
-    if(c.c==='P'){ log_(st, seatName(st,seat)+' 補充→☠毒薬 を引いた'); }
-    else { log_(st, seatName(st,seat)+' 補充→'+fmtCard(c)); }
+    /* ★ 補充ログの秘匿: 自分には具体内容、他人には「XXX 補充」までしか見せない */
+    var pubTxt = seatName(st,seat)+' 補充(記録非公開)';
+    var privTxt;
+    if(c.c==='P'){ privTxt = seatName(st,seat)+' 補充→☠毒薬 を引いた'; }
+    else { privTxt = seatName(st,seat)+' 補充→'+fmtCard(c); }
+    log_(st, privTxt, {pvt:{seat:seat, pub:pubTxt}});
+    resetDeclareIfFull_(st, seat);
     finishTurn(st, seat);
     room.state = st;
   });
@@ -409,7 +419,11 @@ function doPDraw(){
     var cnt = st.forceDraw;
     var src = st.forceDrawSrc||'強制';
     drawToHand(st, seat, cnt);
-    log_(st, seatName(st,seat)+' は'+src+'で'+cnt+'枚ドロー → 続けて通常ターン');
+    /* ★ 補充ログ秘匿: 強制ドロー内容も同様 */
+    log_(st,
+      seatName(st,seat)+' は'+src+'で'+cnt+'枚ドロー → 続けて通常ターン',
+      {pvt:{seat:seat, pub:seatName(st,seat)+' は'+src+'で'+cnt+'枚ドロー(内容非公開) → 続けて通常ターン'}}
+    );
     st.forceDraw=0; st.forceDrawSrc='';
     /* ★ 修正: finishTurn で次プレイヤーへ進めず、choose フェイズに戻して
        同じプレイヤー(強制ドローを受けた側)が通常アクションを実行できるようにする。 */
@@ -441,11 +455,15 @@ function doBlend(){
       var c = findCard(p.hand, id); if(!c) throw new Error('手札にないカード');
       if(c.c==='P') throw new Error('毒薬は調合不可(処分はデトックス/ハーモニー/エッセンス)');
       if(st.bannedColor&&c.c===st.bannedColor) throw new Error('禁色は調合不可(揮発は可)');
+      /* ★ 「1枚出し(除外のみ)」で手札を0枚にする上がりは禁止
+         → 手札1枚の状態での1枚出しはエラーにする。 */
+      if((p.hand||[]).length<=1){
+        throw new Error('1枚出しで手札0枚にはできません。上がりは必ず調合(2〜3枚出し)と役成立が必要です');
+      }
       removeCard(p.hand, id);
       st.excluded.push(c);
       log_(st, seatName(st,seat)+' 1枚調合→'+fmtCard(c)+' を除外(手番終了)');
-      /* 勝利判定 (ブルーミング宣言失念なら無効+ペナルティ) */
-      if(handEmptyWinCheck(st, seat)){ room.state=st; return; }
+      /* 1枚出しでは勝利判定しない → 通常のターン終了のみ */
       finishTurn(st, seat);
       room.state = st;
     });
@@ -471,17 +489,42 @@ function doBlend(){
 
     var cards = ids.map(function(id){
       var c = findCard(p.hand, id); if(!c) throw new Error('手札にないカード');
-      if(c.c==='P') throw new Error('毒薬は調合不可');
+      /* ★ 不純物ルール: 毒薬を調合に使うことを許可 (スロット配置のみ) */
       if(st.bannedColor&&c.c===st.bannedColor) throw new Error('禁色は調合不可(揮発は可)');
       return cloneO(c);
     });
     var exCard = findCard(cards, exId);
     var remain = cards.filter(function(c){return c.id!==exId;});
+
+    /* ★ 不純物ルールの前提チェック:
+       ① 毒薬は「除外」側には置けない(調合除外は話が那なので毒薬は「スロット配置」のみ)
+       ② 毒薬は最大11枚まで(複数毒薬の同時出しは禁) */
+    if(exCard && exCard.c==='P') throw new Error('毒薬は「除外」には配置できません(スロット配置のみ)');
+    var poisonInRemain = remain.filter(function(c){return c.c==='P';});
+    if(poisonInRemain.length>1) throw new Error('1回の調合に毒薬は1枚まで');
+    var usesImpurity = (poisonInRemain.length===1);
+
     /* 仮想 field で役判定 */
     var fCopy = cloneO(st.field);
     remain.forEach(function(c,i){fCopy[tSlots[i]] = {slot:SLOTS[tSlots[i]],card:cloneO(c),stack:[]};});
     var combos = detectCombos(fCopy);
-    if(!combos.length) throw new Error('役が成立する調合のみ実行可能');
+
+    /* ★ 役不成立だが不純物ルール適用可能かを検査 */
+    if(!combos.length){
+      if(!usesImpurity) throw new Error('役が成立する調合のみ実行可能(または『不純物の混入』ルール)');
+      /* 不純物ルール: ids.length===3 、毒薬はスロット配置1枚、
+         毒薬以外の2枚(別スロット配置1枚 + 除外に回した1枚) でミニ・ブレンド成立が必要 */
+      if(ids.length!==3) throw new Error('不純物ルールは 3枚出し(毒薬1 + 素材2) のみ有効');
+      var nonPoisonRemain = remain.filter(function(c){return c.c!=='P';});
+      if(nonPoisonRemain.length!==1 || !exCard) throw new Error('不純物ルール: スロット配置=毒薬1+素材1、除外=素材1 としてください');
+      if(!isMiniBlend(nonPoisonRemain[0], exCard)){
+        throw new Error('不純物ルール: 毒薬以外の2枚がミニ・ブレンド(同色 or 連番)でない');
+      }
+      /* OK: combos は空のまま → 役効果は発動せず、スロット更新のみ */
+      log_(st, '🪴不純物の混入: '+seatName(st,seat)+' は毒薬を1枚スロットに置き役成立を免除(毒薬以外の2枚がミニ・ブレンド成立)');
+    } else if(usesImpurity){
+      throw new Error('毒薬を含む調合は『不純物ルール』のみ適用 (通常の役は毒薬を使えません)');
+    }
 
     /* 実行 — 手札から除去 */
     cards.forEach(function(c){removeCard(p.hand, c.id);});
@@ -502,6 +545,8 @@ function doBlend(){
         /* 毒スポット上書き → 毒薬+伏せ札を回収 */
         receivePoison(st, seat, slot.card);
         (slot.stack||[]).forEach(function(pc){ p.hand.push(pc); });
+        sortHand(p.hand);
+        resetDeclareIfFull_(st, seat);
         log_(st, seatName(st,seat)+' 毒スポット上書き→毒薬+伏せ札'+((slot.stack||[]).length)+'枚 引取');
       } else if(slot.card){
         st.discard.push(slot.card);
@@ -511,16 +556,24 @@ function doBlend(){
     });
     sortHand(p.hand);
 
-    var labels = combos.map(function(x){return x.label;}).join(' + ');
-    log_(st, seatName(st,seat)+' 調合→役「'+labels+'」'+(combos.length>1?' 🌟ダブル・ブレンド':'')+' 成立');
-
-    /* 勝利判定: 上がり直前チェック — 上がりターンは役効果&回収を行わない */
-    if(p.hand.length===0){
-      if(handEmptyWinCheck(st, seat)){ room.state=st; return; }
-      /* ブルーミング失念でドローされた場合は continue */
+    if(combos.length){
+      var labels = combos.map(function(x){return x.label;}).join(' + ');
+      log_(st, seatName(st,seat)+' 調合→役「'+labels+'」'+(combos.length>1?' 🌟ダブル・ブレンド':'')+' 成立');
     }
 
-    /* 役効果を順番に処理 */
+    /* ★ 上がり判定: 不純物ルール上がりは禁止 */
+    if(p.hand.length===0){
+      if(usesImpurity){
+        /* 不純物での上がりは無効 (そもそも毒薬をスロットに置いた = 直前まで毒薬を持っていた = 上がり不可条件)
+           フリークのため明示チェック. ターンは普通に終了する */
+        log_(st, '❌'+seatName(st,seat)+' 不純物ルールでの上がりは禁止されています');
+      } else {
+        if(handEmptyWinCheck(st, seat)){ room.state=st; return; }
+        /* ブルーミング失念でドローされた場合は continue */
+      }
+    }
+
+    /* 役効果を順番に処理 (不純物ルールは combos=空 なので無処理で finishTurn へ) */
     st.pendingCombos = combos.map(function(x){return x.type;});
     st.comboIdx = 0;
     runNextCombo(st, seat, room);
@@ -552,16 +605,15 @@ function applyCombo(st, seat, type){
   if(type==='MONOTONE'){
     var ns = nextSeat(st, seat);
     var targetP = player(st, ns);
+    /* ★修正: 反射を一元化. applyCombo では forceDraw のみセットし、
+       反射判定と実行は finishTurn 側で 1管所に集約。
+       selfForceDraw は使わない(二重ドローバグの原因)。 */
+    st.forceDraw = (st.forceDraw||0) + 2;
+    st.forceDrawSrc = 'モノトーン';
     if(targetP && hasReflect(targetP, st.turnSerial)){
-      /* 反射: 自分に来る */
-      st.forceDraw = (st.forceDraw||0) + 2;
-      st.forceDrawSrc = 'モノトーン(反射)';
-      log_(st,'🪞フル・ブルーム反射: モノトーン2ドローは '+seatName(st,seat)+' 自身に');
-      /* この場合、自分の次のターンに適用するフラグを立てる */
-      st.selfForceDraw = (st.selfForceDraw||0)+2;
+      /* 反射予定を予告ログのみ. 実際のドローは finishTurn で実行される。 */
+      log_(st,'🪞モノトーン発動→'+seatName(st,ns)+'は反射状態: 2ドローは発動者 '+seatName(st,seat)+' 自身に戸される');
     } else {
-      st.forceDraw = (st.forceDraw||0) + 2;
-      st.forceDrawSrc = 'モノトーン';
       log_(st,'モノトーン効果：次手番('+seatName(st,ns)+')は '+st.forceDraw+'枚ドロー後、通常ターン(補充/調合 可)');
     }
     return null;
@@ -661,7 +713,7 @@ function doHarmonyRecover(idx){
     var pre = (st.preOverwrite||[]).filter(function(x){return x.card && x.card.c!=='P';});
     if(idx==null||idx<0||idx>=pre.length){ throw new Error('無効な選択'); }
     var pick = pre[idx];
-    p.hand.push(cloneO(pick.card)); sortHand(p.hand);
+    p.hand.push(cloneO(pick.card)); sortHand(p.hand); resetDeclareIfFull_(st, seat);
     log_(st,'ハーモニー：場の'+fmtCard(pick.card)+' を手札に回収');
     /* 使用済みマーク */
     pick.used = true;
@@ -710,7 +762,7 @@ function doEssence(recoverIdx, bannedColor, poisonTarget){
         if(slot.card.c==='P'){
           /* 毒スポットの回収はなし: 毒譲渡側で処理 */
         } else {
-          p.hand.push(cloneO(slot.card)); sortHand(p.hand);
+          p.hand.push(cloneO(slot.card)); sortHand(p.hand); resetDeclareIfFull_(st, seat);
           log_(st,'エッセンス：場の'+fmtCard(slot.card)+' を手札に回収');
           st.discard.push.apply(st.discard, slot.stack||[]);
           slot.card=null; slot.stack=[];
@@ -827,7 +879,7 @@ function doRainbowRecover(slotIdx){
     if(slotIdx>=0 && slotIdx<FIELD_N){
       var slot = st.field[slotIdx];
       if(slot && slot.card && slot.card.c!=='P'){
-        p.hand.push(cloneO(slot.card)); sortHand(p.hand);
+        p.hand.push(cloneO(slot.card)); sortHand(p.hand); resetDeclareIfFull_(st, seat);
         log_(st,'レインボー：場の'+fmtCard(slot.card)+' を回収');
         st.discard.push.apply(st.discard, slot.stack||[]);
         slot.card=null; slot.stack=[];
@@ -895,13 +947,17 @@ function doDeclare(){
 function handEmptyWinCheck(st, seat){
   var p = player(st, seat);
   if(!p || p.hand.length>0) return false;
-  /* 毒薬所持中は勝利不可 */
+  /* ★ 毒薬所持中は勝利不可 (hand.length===0 なら毒薬もないはずだが安全チェック) */
   if((p.hand||[]).some(function(c){return c.c==='P';})) return false;
-  /* ブルーミング失念判定: 手札3枚以下のタイミングを経て宣言なしで上がり=無効 */
-  if(!p.declared){
+  /* ★ ブルーミング失念判定:
+     「ターン開始手札が4枚以上、終了3枚以下になる」条件を満たしていたのに宣言なし → 無効
+     (手札4枚以上から一気に0まで行けるケースはここでは宣言不要 → 直接勝利) */
+  var declNeeded = Number(p.turnStartHand||0)>=4 && !p.declared;
+  if(declNeeded){
     /* ペナルティ: 2枚ドロー & 上がり無効 */
     drawToHand(st, seat, 2);
-    log_(st, '❌'+seatName(st,seat)+' ブルーミング宣言忘れ！上がり無効+2枚ドローペナルティ');
+    log_(st, '❌'+seatName(st,seat)+' ブルーミング宣言忘れ！上がり無効+2枚ドローペナルティ',
+      {pvt:{seat:seat, pub:seatName(st,seat)+' ブルーミング失念！上がり無効+2枚ドロー'}});
     /* 連続役処理があればスキップしてターン終了 */
     st.pendingCombos=[]; st.comboIdx=0;
     st.phase='choose'; st.rainbowStage='';
@@ -920,6 +976,23 @@ function finishTurn(st, seat){
   if(st.status==='ended') return;
   maturePoisonSpots(st);
   var p = player(st, seat);
+
+  /* ★ ブルーミング宣言失念ペナルティ:
+     ターン開始時に手札が 4枚以上 で、終了時に 3枚以下 になっており宣言未済 → 2ドローペナルティ
+     ペナルティドロー後はターンは通常に次へ (指定により「その手番は強制終了」→すなわちここでは後処理) */
+  if(p && p.status!=='ended' && !p.declared && Number(p.turnStartHand||0)>=4 && (p.hand||[]).length<=3){
+    drawToHand(st, seat, 2);
+    log_(st, '❌'+seatName(st,seat)+' ブルーミング宣言失念！2枚ペナルティドロー+手番強制終了', {pvt:{seat:seat, pub:seatName(st,seat)+' ブルーミング失念！2枚ペナルティドロー'}});
+    /* ペナルティ後手札が 4枚以上に戻るなら declared リセット済み扱い (下で再判定される) */
+  }
+
+  /* ★ ミラー・ノート効果: 同色の「1」と「12」が場にあれば手番進行方向を逆転 */
+  var mirror = detectMirrorNote(st.field);
+  if(mirror){
+    st.turnDir = (Number(st.turnDir||1)===1) ? -1 : 1;
+    log_(st,'🪞ミラー・ノート発動: 同色 1×12 が場に→手番方向が逆転しました');
+  }
+
   /* ジ・エンド連続ターン処理 */
   if(p && p.extraTurns && p.extraTurns>0){
     p.extraTurns--;
@@ -928,14 +1001,9 @@ function finishTurn(st, seat){
     st.pendingCombos=[]; st.comboIdx=0; st.rainbowStage='';
     st.preOverwrite=[];
     if(st.forceDraw>0) st.phase='pending_draw';
-    /* 自分への反射ドローチェック */
-    if(st.selfForceDraw && st.selfForceDraw>0 && st.turnSeat===seat){
-      st.forceDraw = (st.forceDraw||0) + st.selfForceDraw;
-      st.forceDrawSrc = (st.forceDrawSrc||'反射');
-      st.selfForceDraw = 0;
-      st.phase='pending_draw';
-    }
     normalizeT(st);
+    rememberTurnStart_(st, st.turnSeat);
+    maybeResetDeclared_(st, st.turnSeat);
     log_(st, seatName(st, st.turnSeat)+' の連続ターン');
     return;
   }
@@ -945,17 +1013,55 @@ function finishTurn(st, seat){
   st.phase='choose';
   st.pendingCombos=[]; st.comboIdx=0; st.rainbowStage='';
   st.preOverwrite=[];
-  /* 次プレイヤーに反射があれば自分に跳ね返す */
+  /* ★ 反射一元化: 次プレイヤーに反射があって、forceDrawがあるなら「攻撃元=seat」に即時ドローササげる。
+     後続の selfForceDraw 系例外処理は全廃止 (二重ドローの原因)。 */
   var nextP = player(st, st.turnSeat);
   if(nextP && hasReflect(nextP, st.turnSerial) && st.forceDraw>0){
-    /* 反射: 攻撃元(seat)にドロー */
-    drawToHand(st, seat, st.forceDraw);
-    log_(st,'🪞フル・ブルーム反射: '+st.forceDrawSrc+' '+st.forceDraw+'ドローは '+seatName(st,seat)+' へ');
+    var dn = st.forceDraw;
+    var dsrc = st.forceDrawSrc||'攻撃';
+    drawToHand(st, seat, dn);  /* seat = 発動者 が引く */
+    log_(st,'🪞フル・ブルーム反射: '+dsrc+' '+dn+'ドローは '+seatName(st,seat)+' へ (反射者 '+seatName(st, st.turnSeat)+' は引かない)');
     st.forceDraw=0; st.forceDrawSrc='';
+    /* 反射使用で reflectUntil は消費(1回で切れる仕様として) */
+    nextP.reflectUntil = 0;
   }
   if(st.forceDraw>0) st.phase='pending_draw';
   normalizeT(st);
+  rememberTurnStart_(st, st.turnSeat);
+  maybeResetDeclared_(st, st.turnSeat);
   log_(st, seatName(st, st.turnSeat)+' の手番');
+}
+
+/* ターン開始時の手札枚数を記録 (ブルーミング失念判定用) */
+function rememberTurnStart_(st, seat){
+  var p = player(st, seat); if(!p) return;
+  p.turnStartHand = (p.hand||[]).length;
+}
+/* ターン進行時のリセットは resetDeclareIfFull_ を再利用 */
+function maybeResetDeclared_(st, seat){ resetDeclareIfFull_(st, seat); }
+/* ミラー・ノート: 場に同色の 1 と 12 があるか */
+function detectMirrorNote(field){
+  var pairs = {};
+  (field||[]).forEach(function(s){
+    if(!s||!s.card) return;
+    var c = s.card; if(c.c==='P') return;
+    var n = Number(c.v);
+    if(n!==1 && n!==12) return;
+    pairs[c.c] = pairs[c.c]||{};
+    pairs[c.c][n] = true;
+  });
+  for(var col in pairs){ if(pairs[col][1] && pairs[col][12]) return true; }
+  return false;
+}
+/* ミニ・ブレンド: 同色 or 連番(12-1ループ含む) */
+function isMiniBlend(c1,c2){
+  if(!c1||!c2) return false;
+  if(c1.c==='P'||c2.c==='P') return false;
+  if(c1.c===c2.c) return true;
+  var a=Number(c1.v), b=Number(c2.v);
+  if(Math.abs(a-b)===1) return true;
+  if((a===12&&b===1)||(a===1&&b===12)) return true;
+  return false;
 }
 
 function maturePoisonSpots(st){
@@ -979,6 +1085,7 @@ function receivePoison(st, ts, poison){
     return;
   }
   p.hand.push(poison); sortHand(p.hand);
+  resetDeclareIfFull_(st, ts);
 }
 
 function normalizeT(st){
@@ -1045,6 +1152,7 @@ function drawToHand(st, seat, cnt){
   if(!p) return;
   for(var i=0;i<cnt;i++){ var c=drawCard(st); if(!c) break; p.hand.push(c); }
   sortHand(p.hand);
+  resetDeclareIfFull_(st, seat);
 }
 
 function refillDeck(st){
@@ -1059,10 +1167,10 @@ function fallback(){ return {id:'F_'+uuid8(),c:'R',v:1}; }
 function emptyState(rid, cfg, players){
   return {
     roomId:rid, settings:cfg, status:'waiting',
-    players:(players||[]).map(function(p){return {seat:p.seat,token:p.token,name:p.name,hand:[],barrierUntil:0,declared:'',reflectUntil:0,extraTurns:0};}),
+    players:(players||[]).map(function(p){return {seat:p.seat,token:p.token,name:p.name,hand:[],barrierUntil:0,declared:'',reflectUntil:0,extraTurns:0,turnStartHand:0};}),
     deck:[], discard:[], excluded:[],
     field:[0,1,2].map(function(i){return {slot:SLOTS[i],card:null,stack:[]};}),
-    turnSeat:'P1', turnSerial:1, forceDraw:0, forceDrawSrc:'', selfForceDraw:0,
+    turnSeat:'P1', turnSerial:1, turnDir:1, forceDraw:0, forceDrawSrc:'', selfForceDraw:0,
     bannedColor:'', bannedExpire:0, phase:'choose',
     drewThisTurn:false, lastDrawn:null,
     pendingCombos:[], comboIdx:0, preOverwrite:[], rainbowStage:'',
@@ -1083,12 +1191,13 @@ function parseState(t){
   s.field = s.field||[0,1,2].map(function(i){return {slot:SLOTS[i],card:null,stack:[]};});
   s.field = s.field.map(function(f,i){ return f||{slot:SLOTS[i],card:null,stack:[]}; });
   s.field.forEach(function(f){ if(!f.stack) f.stack=[]; });
-  s.players.forEach(function(p){ if(!p.hand) p.hand=[]; if(p.extraTurns==null) p.extraTurns=0; if(p.reflectUntil==null) p.reflectUntil=0; });
+  s.players.forEach(function(p){ if(!p.hand) p.hand=[]; if(p.extraTurns==null) p.extraTurns=0; if(p.reflectUntil==null) p.reflectUntil=0; if(p.turnStartHand==null) p.turnStartHand=(p.hand||[]).length; });
   s.pendingCombos = s.pendingCombos||[];
   s.comboIdx = s.comboIdx||0;
   s.preOverwrite = s.preOverwrite||[];
   s.rainbowStage = s.rainbowStage||'';
   s.selfForceDraw = s.selfForceDraw||0;
+  if(s.turnDir==null) s.turnDir = 1;
   return s;
 }
 
@@ -1217,7 +1326,13 @@ function assertTurn(st, seat){
 }
 function seatByTk(st, tk){ var p=(st.players||[]).find(function(v){return v.token===tk;}); return p?p.seat:''; }
 function player(st, seat){ return (st.players||[]).find(function(p){return p.seat===seat;})||null; }
-function nextSeat(st, seat){ var ps=st.players; var idx=ps.findIndex(function(p){return p.seat===seat;}); if(idx<0||!ps.length)return seat; return ps[(idx+1)%ps.length].seat; }
+function nextSeat(st, seat){
+  var ps=st.players; var idx=ps.findIndex(function(p){return p.seat===seat;});
+  if(idx<0||!ps.length)return seat;
+  var dir = (Number(st.turnDir||1)===-1) ? -1 : 1;
+  var ni = (idx + dir + ps.length) % ps.length;
+  return ps[ni].seat;
+}
 function seatName(st, seat){ var p=player(st,seat); return p?p.name:seat; }
 function normName(n, fb){ var v=String(n||'').trim().slice(0,20); return v||fb||'調香師'; }
 function normColor(c){ c=String(c||'').toUpperCase(); return COLORS.indexOf(c)>=0?c:''; }
@@ -1226,6 +1341,15 @@ function hasBarrier(p, ts){ return Number(p&&p.barrierUntil||0)>Number(ts||0); }
 function hasReflect(p, ts){ return Number(p&&p.reflectUntil||0)>Number(ts||0); }
 
 /* デフォルトで種類(色)順+数字順にソート */
+/* ★ 手札が4枚以上に戻ったらブルーミング宣言を無効化 (每回手札操作後に呼ぶ) */
+function resetDeclareIfFull_(st, seat){
+  var p = player(st, seat); if(!p) return;
+  if((p.hand||[]).length>=4 && p.declared){
+    p.declared = '';
+    log_(st, seatName(st,seat)+' は手札が4枚以上に戻ったためブルーミング宣言が無効化(再宣言が必要)');
+  }
+}
+
 function sortHand(h){
   h.sort(function(a,b){
     var cd = cSort(a.c)-cSort(b.c); if(cd) return cd;
@@ -1241,7 +1365,17 @@ function removeCard(cards, id){ var i=(cards||[]).findIndex(function(c){return S
 function uniq(ids){ var o=[]; (ids||[]).forEach(function(id){id=String(id); if(id&&o.indexOf(id)<0)o.push(id);}); return o; }
 function hasDup(a){ return new Set(a).size!==a.length; }
 function fmtCard(c){ return c.c==='P'?'☠毒薬':CMETA[c.c].e+CMETA[c.c].name+c.v; }
-function log_(st, t){ st.logs = st.logs||[]; st.logs.push({at:new Date().toISOString(),text:t}); if(st.logs.length>LOG_MAX) st.logs = st.logs.slice(-LOG_MAX); }
+/* log_(st, text) または log_(st, text, {pvt:{seat, pub}})
+   pvt 指定時は「指定 seat 以外には pub 文しか見えない」ログとして記録 */
+function log_(st, t, opts){
+  st.logs = st.logs||[];
+  var ent = {at:new Date().toISOString(), text:t};
+  if(opts && opts.pvt){
+    ent.pvt = {seat: String(opts.pvt.seat||''), pub: String(opts.pvt.pub||'――')};
+  }
+  st.logs.push(ent);
+  if(st.logs.length>LOG_MAX) st.logs = st.logs.slice(-LOG_MAX);
+}
 function cloneO(o){ return JSON.parse(JSON.stringify(o)); }
 function shuffle(a){ var r=a.slice(); for(var i=r.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=r[i];r[i]=r[j];r[j]=t;} return r; }
 
