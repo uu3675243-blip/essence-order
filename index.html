@@ -75,10 +75,10 @@ button{appearance:none;border:none;height:32px;padding:0 12px;border-radius:6px;
     <tr><td>ジ・エンド</td><td>全て「12」</td><td>他全員3ドロー+もう1ターン</td></tr>
     <tr><td>レインボー・ラン</td><td>3色+連番</td><td>手札2枚除外+毒1消滅+場1回収+他全員に+1ドロー(全体攻撃)</td></tr>
     <tr><td>フル・ブルーム</td><td>合計=21</td><td>攻撃ドロー反射(次の自分の番まで)</td></tr>
-    <tr><td>ミラー・ノート</td><td>左右対称3数字(例:1-3-1,2-5-2)</td><td>手番方向逆転+次プレイヤースキップ+スキップ対象に+1ドロー</td></tr>
+    <tr><td>ミラー・ノート</td><td>左右対称3数字(例:1-3-1,2-5-2)</td><td>手番方向逆転+次プレイヤースキップ+スキップ対象に+1ドロー。発動後はプレイヤー人数分だけ冷却</td></tr>
     </table>
     <p><b>ダブル・ブレンド:</b> 複数役が同時成立した場合、全効果を累積発動。</p>
-    <h3>🪞 ミラー・ノート (場の特殊効果)</h3><p>場に同じ色の「1」と「12」が同時に並んだ瞬間に<b>手番の進行方向が逆転</b>します。ターン終了時に自動判定。</p>
+    <h3>🪞 ミラー・ノート (場の特殊効果)</h3><p>場に同じ色の「1」と「12」が同時に並んだ瞬間に<b>手番の進行方向が逆転</b>します。ターン終了時に自動判定。<br><b>反転制限:</b> ミラー・ノートが一度発動すると、以後は<b>プレイヤー人数分の手番</b>が進むまで新たなミラー・ノートの<b>反転効果/スキップ効果は発生しません</b>。冷却中の「1」「12」には<b>🧊冷却中</b>表示が出ます。</p>
     <h3>🆕 手動「手番終了」ボタン</h3><p>1枚出し(除外のみ)/補充/揮発/調合後、<b>自動で手番は終了せず</b>「🏁手番終了」ボタンを押して終了します。手札が3枚以下になったターンは、ボタンを押す前に<b>💐ブルーミング宣言</b>を忘れないこと(失念で+2ドローペナルティ)。</p>
     <h3>🛡️ 無防備フラグ(除外のみ)</h3><p>「1枚出し(除外のみ)」を選択したプレイヤーは<b>次の自分の手番まで無防備</b>となり、その期間中は<b>フル・ブルーム反射を使用できません</b>(反射保有中でも攻撃ドローが直撃)。</p>
     <h3>🕷️ シークレット・トラップ (4枚出し)</h3><p><b>4枚出し限定</b>(除外コスト=素材1枚 + 配置=素材2枚 + 仕込み=毒薬1枚)。<b>コスト素材1枚を除外</b>し、<b>素材2枚を2つのスロットに同時配置</b>(1つは通常更新、もう1つは下に毒薬を隠した更新)します。<b>毒を隠すスロットは2ステップ目に明示選択</b>。役判定は<b>配置した素材2枚+他1スロット</b>の3枚で通常どおり行います。<br>⚠️<b>ログ偽装:</b> 相手側の調合記録には<b>「調合→役『〇〇』成立」のみ</b>しか表示されず、スロット位置・毒仕込み・除外コスト内容は一切秘匿されます(他プレイヤーには通常の調合と完全に見分けがつきません)。</p>
@@ -586,8 +586,14 @@ function runNextCombo(st, seat, room){
 function applyCombo(st, seat, type){
   var p = player(st, seat);
   if(type==='MIRROR_NOTE'){
+    /* 反転制限: 冷却中は役自体は成立しても反転/スキップ効果は出さない */
+    if(hasMirrorCooldown(st, st.turnSerial)){
+      log_(st,'🧊ミラー・ノート冷却中: 今回は反転効果・スキップ効果は発生しない');
+      return null;
+    }
     /* 手番方向逆転 + 次プレイヤースキップ + スキップ対象に+1ドロー */
     st.turnDir = (Number(st.turnDir||1)===1) ? -1 : 1;
+    startMirrorCooldown(st, 'combo');
     var skipSeat = nextSeat(st, seat);
     var skipP = player(st, skipSeat);
     if(skipP){
@@ -982,6 +988,31 @@ function detectMirrorSymmetry(nums){
   if(!nums || nums.length!==3) return false;
   return nums[0]===nums[2] && nums[0]!==nums[1];
 }
+function hasMirrorCooldown(st, ts){
+  return Number(st&&st.mirrorCooldownUntil||0) > Number(ts||0);
+}
+function startMirrorCooldown(st, source){
+  st.mirrorCooldownUntil = Number(st.turnSerial||1) + Math.max(1, (st.players||[]).length) + 1;
+  st.mirrorCooldownSource = String(source||'mirror');
+}
+function detectMirrorNoteInfo(field){
+  var pairs = {};
+  (field||[]).forEach(function(s, idx){
+    if(!s||!s.card) return;
+    var c = s.card; if(c.c==='P') return;
+    var n = Number(c.v);
+    if(n!==1 && n!==12) return;
+    pairs[c.c] = pairs[c.c]||{};
+    pairs[c.c][n] = idx;
+  });
+  var slots = [];
+  for(var col in pairs){
+    if(pairs[col][1]!=null && pairs[col][12]!=null){
+      slots.push(Number(pairs[col][1]), Number(pairs[col][12]));
+    }
+  }
+  return {active:slots.length>=2, slots:slots};
+}
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1014,11 +1045,15 @@ function finishTurn(st, seat){
     /* ペナルティ後手札が 4枚以上に戻るなら declared リセット済み扱い (下で再判定される) */
   }
 
-  /* ★ ミラー・ノート効果: 同色の「1」と「12」が場にあれば手番進行方向を逆転 */
-  var mirror = detectMirrorNote(st.field);
-  if(mirror){
-    st.turnDir = (Number(st.turnDir||1)===1) ? -1 : 1;
-    log_(st,'🪞ミラー・ノート発動: 同色 1×12 が場に→手番方向が逆転しました');
+  /* ★ ミラー・ノート効果: 同色の「1」と「12」が場にあれば手番進行方向を逆転
+     ただし冷却中は発動せず、視覚表示のみ行う */
+  var mirror = detectMirrorNoteInfo(st.field);
+  if(mirror.active){
+    if(!hasMirrorCooldown(st, st.turnSerial)){
+      st.turnDir = (Number(st.turnDir||1)===1) ? -1 : 1;
+      startMirrorCooldown(st, 'field');
+      log_(st,'🪞ミラー・ノート発動: 同色 1×12 が場に→手番方向が逆転しました');
+    }
   }
 
   /* ジ・エンド連続ターン処理 */
@@ -1077,17 +1112,7 @@ function rememberTurnStart_(st, seat){
 function maybeResetDeclared_(st, seat){ resetDeclareIfFull_(st, seat); }
 /* ミラー・ノート: 場に同色の 1 と 12 があるか */
 function detectMirrorNote(field){
-  var pairs = {};
-  (field||[]).forEach(function(s){
-    if(!s||!s.card) return;
-    var c = s.card; if(c.c==='P') return;
-    var n = Number(c.v);
-    if(n!==1 && n!==12) return;
-    pairs[c.c] = pairs[c.c]||{};
-    pairs[c.c][n] = true;
-  });
-  for(var col in pairs){ if(pairs[col][1] && pairs[col][12]) return true; }
-  return false;
+  return !!detectMirrorNoteInfo(field).active;
 }
 /* ミニ・ブレンド: 同色 or 連番(12-1ループ含む) */
 function isMiniBlend(c1,c2){
@@ -1233,6 +1258,7 @@ function normalizeT(st){
   (st.field||[]).forEach(function(slot){
     if(slot && slot.lock && Number(slot.lock.until||0)&&ts>=Number(slot.lock.until||0)) slot.lock=null;
   });
+  if(Number(st.mirrorCooldownUntil||0) && ts>=Number(st.mirrorCooldownUntil||0)){ st.mirrorCooldownUntil=0; st.mirrorCooldownSource=''; }
 }
 
 /* 役検出 - 8種すべて判定, 複数一致ならすべて返す */
@@ -1316,6 +1342,7 @@ function emptyState(rid, cfg, players){
     bannedColor:'', bannedExpire:0, phase:'choose',
     drewThisTurn:false, lastDrawn:null,
     pendingCombos:[], comboIdx:0, preOverwrite:[], rainbowStage:'',
+    mirrorCooldownUntil:0, mirrorCooldownSource:'',
     winnerSeat:'', resultSummary:'', finishedAt:'', logs:[]
   };
 }
@@ -1339,6 +1366,8 @@ function parseState(t){
   s.preOverwrite = s.preOverwrite||[];
   s.rainbowStage = s.rainbowStage||'';
   s.selfForceDraw = s.selfForceDraw||0;
+  s.mirrorCooldownUntil = Number(s.mirrorCooldownUntil||0);
+  s.mirrorCooldownSource = s.mirrorCooldownSource||'';
   if(s.turnDir==null) s.turnDir = 1;
   return s;
 }
@@ -1358,6 +1387,9 @@ function buildResp(room, token){
   var canOp = st.status==='playing' && seat===st.turnSeat;
   var myHand = me ? (me.hand||[]).map(toClient) : [];
   var poisonCount = myHand.filter(function(c){return c.type==='poison';}).length;
+  var mirrorInfo = detectMirrorNoteInfo(st.field);
+  var mirrorCooling = hasMirrorCooldown(st, st.turnSerial) && mirrorInfo.active;
+  var mirrorSlots = mirrorInfo.slots||[];
 
   return {
     ok:true,
@@ -1390,6 +1422,8 @@ function buildResp(room, token){
     finishedAt:st.finishedAt||'',
     message:buildMsg(st, seat),
     currentCombos:comboLabels(st),
+    mirrorCooldownActive:hasMirrorCooldown(st, st.turnSerial),
+    mirrorCooldownUntil:Number(st.mirrorCooldownUntil||0),
     myHand:myHand,
     myPoisonCount:poisonCount,
     myBarrier:me?hasBarrier(me, st.turnSerial):false,
@@ -1431,7 +1465,9 @@ function buildResp(room, token){
         id:c.id, stackCount:(slot.stack||[]).length,
         trapMine:!!(slot.trap&&slot.trap.poison&&String(slot.trap.owner||'')===String(seat)),
         locked:!!(slot.lock && Number(slot.lock.until||0)>Number(st.turnSerial||0)),
-        lockMine:!!(slot.lock && String(slot.lock.owner||'')===String(seat) && Number(slot.lock.until||0)>Number(st.turnSerial||0))
+        lockMine:!!(slot.lock && String(slot.lock.owner||'')===String(seat) && Number(slot.lock.until||0)>Number(st.turnSerial||0)),
+        mirrorCooling:!!(mirrorCooling && mirrorSlots.indexOf(i)>=0),
+        mirrorCoolingLabel:!!(mirrorCooling && mirrorSlots.indexOf(i)>=0) ? '🧊冷却中' : ''
       };
     }),
     logs:(st.logs||[]).slice(-LOG_MAX).map(function(l){
@@ -1455,17 +1491,18 @@ function toClient(card){
 }
 
 function buildMsg(st, seat){
-  if(st.status==='waiting') return '🧪 参加者が揃ったら「調合開始」をクリック';
+  var cool = hasMirrorCooldown(st, st.turnSerial) ? ' / 🧊ミラー・ノート冷却中' : '';
+  if(st.status==='waiting') return '🧪 参加者が揃ったら「調合開始」をクリック'+cool;
   if(st.status==='ended') return '🏆 '+st.resultSummary;
-  if(!seat) return seatName(st, st.turnSeat)+' の手番です';
-  if(seat!==st.turnSeat) return '⏳ '+seatName(st, st.turnSeat)+' の手番を待っています';
-  if(st.phase==='pending_draw') return '⚠️ '+(st.forceDrawSrc||'強制')+'：'+st.forceDraw+'枚ドロー → 続けて通常ターン';
-  if(st.phase==='grad_extra') return '🎨 グラデーション：手札1枚を追加除外';
-  if(st.phase==='harmony_recover') return '🎵 ハーモニー：上書き前の場カードを1枚回収';
-  if(st.phase==='essence_act') return '✨ エッセンス：場1枚回収+禁色指定+毒薬を次手番へ強制譲渡';
-  if(st.phase==='rainbow_act') return '🌈 レインボー・ラン：手札排除/毒消滅/場回収';
-  if(st.bannedColor) return '🚫 禁色：'+CMETA[st.bannedColor].name+'。禁色は調合不可(揮発可)';
-  return '⚗️ 調合(1〜3枚) or 補充(1枚)';
+  if(!seat) return seatName(st, st.turnSeat)+' の手番です'+cool;
+  if(seat!==st.turnSeat) return '⏳ '+seatName(st, st.turnSeat)+' の手番を待っています'+cool;
+  if(st.phase==='pending_draw') return '⚠️ '+(st.forceDrawSrc||'強制')+'：'+st.forceDraw+'枚ドロー → 続けて通常ターン'+cool;
+  if(st.phase==='grad_extra') return '🎨 グラデーション：手札1枚を追加除外'+cool;
+  if(st.phase==='harmony_recover') return '🎵 ハーモニー：上書き前の場カードを1枚回収'+cool;
+  if(st.phase==='essence_act') return '✨ エッセンス：場1枚回収+禁色指定+毒薬を次手番へ強制譲渡'+cool;
+  if(st.phase==='rainbow_act') return '🌈 レインボー・ラン：手札排除/毒消滅/場回収'+cool;
+  if(st.bannedColor) return '🚫 禁色：'+CMETA[st.bannedColor].name+'。禁色は調合不可(揮発可)'+cool;
+  return '⚗️ 調合(1〜4枚) or 補充(1枚)'+cool;
 }
 
 function comboLabels(st){
@@ -1593,11 +1630,16 @@ function rField(){
   f.forEach(function(c,i){
     var sel = (S.selSlots.indexOf(i)>=0);
     var d=mk('div','slot'+(sel?' sel':''));
-    d.innerHTML='<div class="sLbl">'+SN[i]+(c&&c.locked?(c.lockMine?' 🔒自':' 🔒'):'')+'</div>';
+    d.innerHTML='<div class="sLbl">'+SN[i]+(c&&c.locked?(c.lockMine?' 🔒自':' 🔒'):'')+(c&&c.mirrorCooling?' 🧊':'')+'</div>';
     if(c){
       var sc=c.type==='poison'?'#6b21a8':({R:'#c0392b',B:'#2874a6',Y:'#b7950b',G:'#1e8449'}[c.color]||'#666');
-      d.innerHTML+='<div class="sEmoji">'+esc(c.emoji)+'</div><div class="sNum" style="color:'+sc+'">'+(c.type==='poison'?'☠':c.number)+'</div><div class="sName">'+esc(c.colorName)+'</div>';
+      if(c.mirrorCooling){
+        d.style.boxShadow = 'inset 0 0 0 2px rgba(125,211,252,.55), 0 0 16px rgba(125,211,252,.18)';
+        d.style.background = 'linear-gradient(180deg, rgba(125,211,252,.12), rgba(16,13,8,.18))';
+      }
+      d.innerHTML+='<div class="sEmoji">'+esc(c.emoji)+'</div><div class="sNum" style="color:'+sc+(c.mirrorCooling?';text-shadow:0 0 8px rgba(125,211,252,.6)':'')+'">'+(c.type==='poison'?'☠':c.number)+'</div><div class="sName">'+esc(c.colorName)+'</div>';
       if(c.stackCount>0) d.innerHTML+='<div class="sStack">🍷×'+c.stackCount+'</div>'; if(c.trapMine) d.innerHTML+='<div class="sStack" style="left:6px;right:auto;color:#6b21a8">🕷️</div>';
+      if(c.mirrorCooling) d.innerHTML+='<div style="position:absolute;left:6px;bottom:6px;padding:2px 6px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(8,47,73,.88);color:#7dd3fc;border:1px solid rgba(125,211,252,.45)">'+esc(c.mirrorCoolingLabel||'🧊冷却中')+'</div>';
     } else d.innerHTML+='<div class="sEmoji" style="opacity:.3">—</div>';
     if(canSel) d.onclick=function(){tglSlot(i);};
     E.slots.appendChild(d);
@@ -1647,7 +1689,7 @@ function rPhase(){
 
   if(ph==='choose'){
     var banInfo=r.bannedColor?'/揮発(💨'+CN[r.bannedColor]+')':'';
-    E.phD.textContent='⚗️ 調合(1〜3枚)'+banInfo;
+    E.phD.textContent='⚗️ 調合(1〜4枚)'+banInfo;
     var N=S.selCards.length;var nd=N>1?N-1:0;
     var info=mk('div','');info.style.cssText='font-size:10px;color:var(--gold);margin-bottom:6px';
     if(N===1) info.textContent='選択1 除外:'+(S.exclId?'✓':'❌')+' スロット:'+S.selSlots.length+'/1 [1枚出し=除外のみ / トラップ指定で安全除去]';
