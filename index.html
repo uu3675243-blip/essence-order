@@ -67,9 +67,9 @@ button{appearance:none;border:none;height:32px;padding:0 12px;border-radius:6px;
     <h3>⚗️ アクション</h3><p><b>①調合:</b> 手札1〜3枚出し。<br>&emsp;・<b>1枚</b>: 除外のみ(役不要)→<b>手動で手番終了</b>。選択者は次手番まで<b>無防備(反射不可)</b>になります。<br>&emsp;・<b>2〜3枚</b>: 1枚除外+残り(1〜2)で場を上書き→<b>役成立必須</b>。<br>&emsp;・<b>4枚(🕷️トラップ)</b>: 素材1除外+素材2配置+毒薬1を下に隠す→<b>2スロット同時更新+役成立必須</b>。<br><b>②補充:</b> 山札1枚引く(手動で手番終了)。毒薬はそのまま加入。<br><b>③揮発:</b> 禁色/毒薬1枚除外+山札2枚ドロー(手動で手番終了)。</p>
     <h3>🎵 役(ブレンド)</h3><table>
     <tr><th>役</th><th>条件</th><th>効果</th></tr>
-    <tr><td>モノトーン</td><td>同色3枚(連番でも成立)</td><td>次プレイヤーのみ+3ドロー</td></tr>
+    <tr><td>モノトーン</td><td>同色3枚(連番でも可)</td><td>次プレイヤーのみ+3ドロー / グラデーションと両立可</td></tr>
     <tr><td>グラデーション</td><td>同色+連番</td><td>追加1枚除外+次プレイヤーの「除外のみ」1ターン封印</td></tr>
-    <tr><td>ハーモニー</td><td>3色3枚(連番でも成立)</td><td>上書き前の場1枚回収+任意スロット1つを次プレイヤー1ターン上書きロック</td></tr>
+    <tr><td>ハーモニー</td><td>3色バラバラ(連番でも可)</td><td>上書き前の場1枚回収+任意スロット1つを次プレイヤー1ターン上書きロック / レインボーと両立可</td></tr>
     <tr><td>エッセンス</td><td>同数字3枚</td><td>場1枚回収+禁色1周+毒譲渡</td></tr>
     <tr><td>アダム&イヴ</td><td>全て「1」</td><td>自手札の毒薬全消滅</td></tr>
     <tr><td>ジ・エンド</td><td>全て「12」</td><td>他全員3ドロー+もう1ターン</td></tr>
@@ -77,7 +77,7 @@ button{appearance:none;border:none;height:32px;padding:0 12px;border-radius:6px;
     <tr><td>フル・ブルーム</td><td>合計=21</td><td>攻撃ドロー反射(次の自分の番まで)</td></tr>
     <tr><td>ミラー・ノート</td><td>左右対称3数字(例:1-3-1,2-5-2)</td><td>手番方向逆転+次プレイヤースキップ+スキップ対象に+1ドロー。発動後はプレイヤー人数分だけ冷却</td></tr>
     </table>
-    <p><b>ダブル・ブレンド:</b> 複数役が同時成立した場合、全効果を累積発動。主な両立例: <b>グラデ+モノトーン</b>(同色連番)、<b>レインボー+ハーモニー</b>(3色連番)、<b>モノトーン+ミラー</b>(同色a-b-a)、<b>ハーモニー+ミラー</b>(3色a-b-a)、<b>エッセンス+フル・ブルーム</b>(7-7-7)など。</p>
+    <p><b>ダブル・ブレンド:</b> 複数役が同時成立した場合、全効果を累積発動。</p>
     <h3>🪞 ミラー・ノート (場の特殊効果)</h3><p>場に同じ色の「1」と「12」が同時に並んだ瞬間に<b>手番の進行方向が逆転</b>します。ターン終了時に自動判定。<br><b>反転制限:</b> ミラー・ノートが一度発動すると、以後は<b>プレイヤー人数分の手番</b>が進むまで新たなミラー・ノートの<b>反転効果/スキップ効果は発生しません</b>。冷却中の「1」「12」には<b>🧊冷却中</b>表示が出ます。</p>
     <h3>🆕 手動「手番終了」ボタン</h3><p>1枚出し(除外のみ)/補充/揮発/調合後、<b>自動で手番は終了せず</b>「🏁手番終了」ボタンを押して終了します。手札が3枚以下になったターンは、ボタンを押す前に<b>💐ブルーミング宣言</b>を忘れないこと(失念で+2ドローペナルティ)。</p>
     <h3>🛡️ 無防備フラグ(除外のみ)</h3><p>「1枚出し(除外のみ)」を選択したプレイヤーは<b>次の自分の手番まで無防備</b>となり、その期間中は<b>フル・ブルーム反射を使用できません</b>(反射保有中でも攻撃ドローが直撃)。</p>
@@ -390,6 +390,8 @@ function doRestock(){
     var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
     assertTurn(st, seat); normalizeT(st);
     if(st.phase!=='choose') throw new Error('choose フェイズのみ');
+    /* ★ [F1] 同一ターンで既にアクション実行済みなら拒否 */
+    if(st.drewThisTurn) throw new Error('このターンはアクション済みです → 🏁手番終了 を押してください');
     var p = player(st, seat);
     var c = drawCard(st); if(!c) throw new Error('山札なし');
     p.hand.push(c); sortHand(p.hand);
@@ -454,6 +456,8 @@ function doBlend(){
       var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
       assertTurn(st, seat); normalizeT(st);
       if(st.phase!=='choose') throw new Error('choose フェイズのみ');
+      /* ★ [F1] 同一ターンで既にアクション実行済みなら拒否 (手番終了で次ターンへ) */
+      if(st.drewThisTurn) throw new Error('このターンはアクション済みです → 🏁手番終了 を押してください');
       var p = player(st, seat);
       var id = payload1.cardIds[0];
       var c = findCard(p.hand, id); if(!c) throw new Error('手札にないカード');
@@ -499,6 +503,8 @@ function doBlend(){
     var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
     assertTurn(st, seat); normalizeT(st);
     if(st.phase!=='choose') throw new Error('choose フェイズのみ');
+    /* ★ [F1] 同一ターンで既にアクション実行済みなら拒否 */
+    if(st.drewThisTurn) throw new Error('このターンはアクション済みです → 🏁手番終了 を押してください');
     var p = player(st, seat);
     var ids = uniq(payload.cardIds||[]);
     var exId = String(payload.excludeId||'');
@@ -576,9 +582,19 @@ function runNextCombo(st, seat, room){
       return;
     }
   }
-  /* 全役完了 → 勝利チェック & 次ターン or 連続ターン */
+  /* 全役完了 → 勝利チェック */
   if(handEmptyWinCheck(st, seat)){ room.state=st; return; }
-  finishTurn(st, seat);
+  /* ★ [F3][F5] 役効果完了後は choose フェーズに戻し、ブルーミング宣言+手動endTurn待ちにする。
+     drewThisTurn=true で再アクション禁止。これにより、
+       (a) 同ターンで複数調合できない
+       (b) 手札≤3 なら宣言ボタンが必ず表示される
+       (c) グラデ等のインタラクティブ役完了後も同様に宣言機会が確保される */
+  st.phase = 'choose';
+  st.drewThisTurn = true;
+  st.pendingCombos = [];
+  st.comboIdx = 0;
+  st.rainbowStage = '';
+  st.preOverwrite = [];
   room.state = st;
 }
 
@@ -702,23 +718,6 @@ function doGradEx(cardId){
     log_(st,'グラデーション追加除外→'+fmtCard(c));
     /* ★ グラデーション封印: 次プレイヤーの「1枚出し(除外のみ)」を1ターン封印 */
     applyGradSeal_(st, seat);
-    st.phase='choose';
-    if(handEmptyWinCheck(st, seat)){ room.state=st; return; }
-    runNextCombo(st, seat, room);
-  });
-  setTimeout(function(){pen(0);clr();}, 120);
-}
-/* 素材なしまたは見送り時のグラデフェイズ離脱 */
-function doGradPass(){
-  if(S.pend) return;
-  pen(1);
-  mutateRoom(S.roomId, function(room){
-    var st = parseState(room.state);
-    var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
-    assertTurn(st, seat); normalizeT(st);
-    if(st.phase!=='grad_extra') throw new Error('グラデフェイズではない');
-    log_(st,'グラデーション：追加除外を見送り');
-    /* 封印は除外したときのみ発生(見送りでは封印しない) */
     st.phase='choose';
     if(handEmptyWinCheck(st, seat)){ room.state=st; return; }
     runNextCombo(st, seat, room);
@@ -936,6 +935,8 @@ function doVolatilize(cardId){
     var seat = seatByTk(st, S.token); if(!seat) throw new Error('参加者ではありません');
     assertTurn(st, seat); normalizeT(st);
     if(st.phase!=='choose') throw new Error('choose フェイズのみ');
+    /* ★ [F1] 同一ターンで既にアクション実行済みなら拒否 */
+    if(st.drewThisTurn) throw new Error('このターンはアクション済みです → 🏁手番終了 を押してください');
     var p = player(st, seat);
     var c = findCard(p.hand, cardId); if(!c) throw new Error('カードなし');
     var ok = (c.c===st.bannedColor) || (c.c==='P');
@@ -1295,18 +1296,18 @@ function detectCombos(field){
   if(sameN && nums[0]===1) out.push({type:'ADAM_EVE',label:'アダム&イヴ'});
   if(sameN && nums[0]===12) out.push({type:'THE_END',label:'ジ・エンド'});
   if(sameN) out.push({type:'ESSENCE',label:'エッセンス'});
-  /* ★ ダブル・ブレンド対応:
-     - グラデ(同色連番)とモノトーン(同色)は両立 → MONOTONE は sameC で常に成立
-     - レインボー(3色連番)とハーモニー(3色)は両立 → HARMONY は diffC で常に成立
-     - ハーモニーとミラー・ノートも両立 (3色a-b-a で両方成立)
-     - 同色a-b-a はモノトーン+ミラー両方成立(既存仕様維持) */
   if(sameC && run) out.push({type:'GRADATION',label:'グラデーション'});
   if(diffC && run) out.push({type:'RAINBOW',label:'レインボー・ラン'});
+  /* ★ [F2-Q1=B] モノトーン拡張: 同色なら必ず成立 (連番でも非連番でも)
+     これにより 同色連番 → グラデーション + モノトーン 両方成立(ダブル・ブレンド) */
   if(sameC) out.push({type:'MONOTONE',label:'モノトーン'});
-  if(diffC) out.push({type:'HARMONY',label:'ハーモニー'});
+  /* ★ [F2-Q2=A] ハーモニー拡張: 3色なら必ず成立 (連番でも非連番でも)
+     これにより 3色連番 → レインボー・ラン + ハーモニー 両方成立(ダブル・ブレンド)
+     ただしミラー・ノート(a-b-a)とは依然排他 */
+  if(diffC && !detectMirrorSymmetry(nums)) out.push({type:'HARMONY',label:'ハーモニー'});
   if(sum===21) out.push({type:'FULL_BLOOM',label:'フル・ブルーム'});
   /* ★ ミラー・ノート役: 3つの数字が左右対称 a-b-a パターン。
-     ハーモニー/モノトーンと両立可能(ダブル・ブレンド)。 */
+     同色 a-b-a の場合はモノトーン + ミラー・ノート 両方成立(ダブル・ブレンド)。 */
   if(detectMirrorSymmetry(nums)) out.push({type:'MIRROR_NOTE',label:'ミラー・ノート'});
   return out;
 }
@@ -1723,7 +1724,7 @@ function rPhase(){
     var bb=mk('button','bg');bb.textContent='⚗️調合';
     var slotsOk = (N===1)?(S.selSlots.length<=1):(S.selSlots.length===slotNeedCount());
     var trapOk = !isTrapSetupSelection() || (S.selTrapSlot===0 || S.selTrapSlot===1);
-    bb.disabled=!N||!S.exclId||!slotsOk||!trapOk||S.pend;
+    bb.disabled=!N||!S.exclId||!slotsOk||!trapOk||S.pend||r.drewThisTurn;
     bb.onclick=doBlend;E.phC.appendChild(bb);
 
     /* 🕷️ トラップ毒隠しスロット選択UI: 4枚+除外+2スロット 選択完了時に表示 */
@@ -1741,7 +1742,7 @@ function rPhase(){
       E.phC.appendChild(tw);
     }
 
-    var rb=mk('button','bd');rb.textContent='📦補充';rb.disabled=S.pend;rb.style.marginLeft='6px';rb.onclick=doRestock;E.phC.appendChild(rb);
+    var rb=mk('button','bd');rb.textContent='📦補充';rb.disabled=S.pend||r.drewThisTurn;rb.style.marginLeft='6px';rb.onclick=doRestock;E.phC.appendChild(rb);
 
     /* 🏁 手動ターン終了ボタン: アクション実行後(drewThisTurn=true)に押せる */
     var eb=mk('button','br');eb.textContent='🏁手番終了';eb.disabled=S.pend||!r.drewThisTurn;eb.style.marginLeft='6px';eb.title='アクション(調合/補充/揮発/除外のみ)実行後、このボタンで手番終了';eb.onclick=doEndTurn;E.phC.appendChild(eb);
@@ -1756,7 +1757,7 @@ function rPhase(){
       (r.myHand||[]).forEach(function(c){
         var canV = (c.type==='poison') || (r.bannedColor && c.color===r.bannedColor);
         if(!canV) return;
-        var vb=mk('button','br');vb.textContent=c.label;vb.disabled=S.pend;vb.style.fontSize='10px';
+        var vb=mk('button','br');vb.textContent=c.label;vb.disabled=S.pend||r.drewThisTurn;vb.style.fontSize='10px';
         vb.onclick=function(){doVolatilize(c.id);};vw.appendChild(vb);
       });
       E.phC.appendChild(vw);
@@ -1766,25 +1767,11 @@ function rPhase(){
     var pb=mk('button','br');pb.textContent=(r.pendingDrawCount||0)+'枚引く';pb.disabled=S.pend;pb.onclick=doPDraw;E.phC.appendChild(pb);
   } else if(ph==='grad_extra'){
     E.phD.textContent='🎨 グラデーション追加除外(素材のみ/毒薬不可)';
-    var hasMaterial = false;
     (r.myHand||[]).forEach(function(c){
       if(c.type==='poison')return;
-      hasMaterial = true;
       var b=mk('button','bd');b.textContent=c.label;b.style.marginRight='4px';b.disabled=S.pend;
       b.onclick=function(){doGradEx(c.id);};E.phC.appendChild(b);
     });
-    if(!hasMaterial){
-      var note=mk('div','');note.style.cssText='font-size:11px;color:var(--gold)';
-      note.textContent='素材なし(追加除外不可) - 見送りで次へ';
-      E.phC.appendChild(note);
-      var sk=mk('button','bd');sk.textContent='見送り';sk.disabled=S.pend;sk.style.marginLeft='6px';
-      sk.onclick=function(){ /* 強制的に見送り処理を発火: 手札に素材がない場合 doGradEx が呼べないため */
-        /* 見送り = 何もしないで applyCombo 復帰: サーバ側で grad_extra→次の役へ自動進行する処理が必要 */
-        if(typeof doGradPass==='function') doGradPass();
-        else tst('素材なし: 自動進行を待ってください');
-      };
-      E.phC.appendChild(sk);
-    }
   } else if(ph==='harmony_recover'){
     E.phD.textContent='🎵 ハーモニー：上書き前の場カードを1枚回収';
     (r.preOverwrite||[]).forEach(function(x,idx){
@@ -1853,7 +1840,7 @@ function renderBloomDeclareBtn(r){
   /* 手札が3枚以下になり得る全フェーズ(choose / grad_extra / harmony_recover / essence_act / rainbow_act / pending_draw)で
      未宣言かつ手札3枚以下なら常にブルーミング宣言ボタンを表示する */
   var ph = r.phase||'';
-  var allowed = (ph==='choose'||ph==='grad_extra'||ph==='harmony_recover'||ph==='essence_act'||ph==='rainbow_act'||ph==='pending_draw');
+  var allowed = (ph==='choose'||ph==='grad_extra'||ph==='harmony_recover'||ph==='essence_act'||ph==='rainbow_act'||ph==='pending_draw'||ph==='harmony_lock');
   if(!allowed) return;
   if(!(r.myHand&&r.myHand.length<=3)) return;
   if(r.myDeclared) return;
