@@ -81,7 +81,7 @@ button{appearance:none;border:none;height:32px;padding:0 12px;border-radius:6px;
     <h3>🪞 ミラー・ノート (場の特殊効果)</h3><p>場に同じ色の「1」と「12」が同時に並んだ瞬間に<b>手番の進行方向が逆転</b>します。ターン終了時に自動判定。<br><b>反転制限:</b> ミラー・ノートが一度発動すると、以後は<b>プレイヤー人数分の手番</b>が進むまで新たなミラー・ノートの<b>反転効果/スキップ効果は発生しません</b>。冷却中の「1」「12」には<b>🧊冷却中</b>表示が出ます。</p>
     <h3>🆕 手動「手番終了」ボタン</h3><p>1枚出し(除外のみ)/補充/揮発/調合後、<b>自動で手番は終了せず</b>「🏁手番終了」ボタンを押して終了します。手札が3枚以下になったターンは、ボタンを押す前に<b>💐ブルーミング宣言</b>を忘れないこと(失念で+2ドローペナルティ)。</p>
     <h3>🛡️ 無防備フラグ(除外のみ)</h3><p>「1枚出し(除外のみ)」を選択したプレイヤーは<b>次の自分の手番まで無防備</b>となり、その期間中は<b>フル・ブルーム反射を使用できません</b>(反射保有中でも攻撃ドローが直撃)。</p>
-    <h3>🕷️ シークレット・トラップ (4枚出し)</h3><p><b>4枚出し限定</b>(除外コスト=素材1枚 + 配置=素材2枚 + 仕込み=毒薬1枚)。<b>コスト素材1枚を除外</b>し、<b>素材2枚を2つのスロットに同時配置</b>(1つは通常更新、もう1つは下に毒薬を隠した更新)します。<b>毒を隠すスロットは2ステップ目に明示選択</b>。役判定は<b>配置した素材2枚+他1スロット</b>の3枚で通常どおり行います。<br>⚠️<b>ログ偽装:</b> 相手側の調合記録には<b>「調合→役『〇〇』成立」のみ</b>しか表示されず、スロット位置・毒仕込み・除外コスト内容は一切秘匿されます(他プレイヤーには通常の調合と完全に見分けがつきません)。</p>
+    <h3>🕷️ シークレット・トラップ (4枚出し)</h3><p><b>4枚出し限定</b>(除外コスト=素材1枚 + 配置=素材2枚 + 仕込み=毒薬1枚)。<b>手札5枚以上で使用可能</b>(4枚出すと手札が0〜1枚になるため最低5枚必要)。<b>コスト素材1枚を除外</b>し、<b>素材2枚を2つのスロットに同時配置</b>(1つは通常更新、もう1つは下に毒薬を隠した更新)します。<b>毒を隠すスロットは2ステップ目に明示選択</b>。役判定は<b>配置した素材2枚+他1スロット</b>の3枚で通常どおり行います。<br>⚠️<b>ログ偽装:</b> 相手側の調合記録には<b>「調合→役『〇〇』成立」のみ</b>しか表示されず、スロット位置・毒仕込み・除外コスト内容は一切秘匿されます(他プレイヤーには通常の調合と完全に見分けがつきません)。</p>
     <h3>☠️ トラップ発動 / 安全除去</h3><p>相手がそのスロットを<b>上書き</b>または<b>回収</b>した瞬間、隠し毒薬が相手手札へ強制移動し、さらに<b>山札から1枚ドロー</b>。このドローは<b>フル・ブルームで反射されません</b>。自分の手番なら、<b>1枚出し</b>でトラップスロットを指定して安全にまとめて除去できます。</p>
     <h3>🚫 禁止色 / 💨揮発</h3><p>エッセンスで指定。1周で自動解除。揮発:禁色/毒薬1枚除外+山札2枚引く(手札+1)。</p>
     <h3>💐 ブルーミング宣言 (詳細ルール)</h3><p><b>① 宣言が必要なタイミング:</b> 手札が<b>4枚以上の状態から</b>、アクションによって<b>3枚以下</b>になったターンの終了時に宣言必須。一度宣言した後は、手札が3枚以下である限り毎ターン宣言し直す必要はなし。<br><b>② 再発動(リセット)条件:</b> 補充/攻撃(モノトーン等)/毒薬回収などで<b>手札が4枚以上に戻った場合、以前の宣言は無効(リセット)</b>。再度カードを減らして3枚以下になったらブルーミングを再宣言。<br><b>③ 失念時のペナルティ:</b> 4枚→ 3枚以下になったターンでボタンを押さずに終了しようとした場合、即座に<b>2枚強制ドロー+手番強制終了</b>。</p>
@@ -511,6 +511,10 @@ function doBlend(){
     var tSlots = (payload.slots||[]).map(Number);
     if(ids.length<2||ids.length>4) throw new Error('2〜3枚(通常)または4枚(シークレット・トラップ)のみ');
     if(!exId||ids.indexOf(exId)<0) throw new Error('除外カード指定必須');
+    /* ★ [修正2] 4枚出し(トラップ)は手札5枚以上が必要 */
+    if(ids.length===4 && (p.hand||[]).length < 5){
+      throw new Error('🕷️シークレット・トラップは手札5枚以上で使用可能(4枚出すと手札が0〜1枚で破綻するため)');
+    }
 
     var cards = ids.map(function(id){
       var c = findCard(p.hand, id); if(!c) throw new Error('手札にないカード');
@@ -695,7 +699,15 @@ function applyCombo(st, seat, type){
     return {interactive:true};
   }
   if(type==='FULL_BLOOM'){
-    p.reflectUntil = st.turnSerial + st.players.length; /* 次の自分の番まで */
+    /* ★ [修正1] 反射の有効期限を +1 して、
+       「次の自分の番が始まる直前(=その前の相手手番終了時点)」まで有効にする。
+       hasReflect は reflectUntil > turnSerial で判定するため、
+       2人戦: 自分手番(ts=1)発動 → reflectUntil=1+2+1=4。
+         相手手番終了時点で ts=2→3 になり hasReflect(3)=4>3=true → 反射OK。
+         自分の次の手番開始時に normalizeT が ts>=4 なら消す。
+         次の自分手番=ts=3, ts>=4 はまだ偽 → 反射保有のまま手番開始。
+         次の手番終了時に ts=4 → normalizeT で消滅 (次の自分の番まで保持) */
+    p.reflectUntil = st.turnSerial + st.players.length + 1;
     log_(st,'🌸フル・ブルーム：'+seatName(st,seat)+' は次の自分の番まで攻撃ドロー反射');
     return null;
   }
@@ -1158,6 +1170,8 @@ function analyzeBlend(cards, exId, trapSlotIdx){
   if(poisons.length>1) throw new Error('1回の調合に毒薬は1枚まで');
   if(cards.length!==4) throw new Error('シークレット・トラップは 4枚出し(除外素材1+配置素材2+毒薬1) のみ有効');
   if(exCard.c==='P') throw new Error('シークレット・トラップでは素材カードを除外コスト(1枚)として指定してください');
+  /* ★ [修正2] 手札5枚以上ある場合のみトラップ可能 - サーバ側でも検証
+     analyzeBlend 自体は手札情報を持たないため、呼び出し側 doBlend で検証する */
   var remainPoison = remain.filter(function(c){return c.c==='P';});
   var remainMaterial = remain.filter(function(c){return c.c!=='P';});
   if(remainMaterial.length!==2 || remainPoison.length!==1) throw new Error('シークレット・トラップ: 除外=素材1枚, 配置=素材2枚, 仕込み=毒薬1枚 としてください');
@@ -1680,6 +1694,12 @@ function isTrapSetupSelection(){
   /* 残り3枚 = 素材2+毒1 */
   return remain.length===3 && remain.filter(function(c){return c.type==='poison';}).length===1 && remain.filter(function(c){return c.type!=='poison';}).length===2;
 }
+/* ★ [修正2] 手札5枚以上ある場合のみトラップを仕掛けられる
+   (4枚出しすると手札0または1枚になり破綻するため) */
+function canSetupTrap(){
+  var hand = (S.room && S.room.myHand) || [];
+  return hand.length >= 5;
+}
 function slotNeedCount(){
   var n=S.selCards.length;
   if(n<=0) return 0;
@@ -1717,6 +1737,8 @@ function rPhase(){
     if(N===1) info.textContent='選択1 除外:'+(S.exclId?'✓':'❌')+' スロット:'+S.selSlots.length+'/1 [1枚出し=除外のみ / トラップ指定で安全除去]';
     else {
       var trapInfo = isTrapSetupSelection() ? (' [🕷️トラップ仕込(4枚): 2スロット同時更新'+(S.selTrapSlot>=0?' / 毒隠し='+SN[S.selSlots[S.selTrapSlot]]:' / 毒隠し未選択')+']') : '';
+      var trapWarn = (!canSetupTrap() && S.room && S.room.myHand && S.room.myHand.some(function(c){return c.type==='poison';})) ? ' ⚠️トラップは手札5枚以上' : '';
+      trapInfo += trapWarn;
       info.textContent='選択'+N+' 除外:'+(S.exclId?'✓':'❌')+' スロット:'+S.selSlots.length+'/'+slotNeedCount()+trapInfo;
     }
     E.phC.appendChild(info);
@@ -1894,8 +1916,19 @@ function tglCard(id){
     var currentCards=S.selCards.map(function(cid){return hand.find(function(c){return c.id===cid;});}).filter(Boolean);
     var willBe = currentCards.concat(target||[]);
     var willBePoisons = willBe.filter(function(c){return c&&c.type==='poison';}).length;
-    var max = (willBePoisons>=1) ? 4 : 3;
-    if(S.selCards.length>=max) return tst('最大'+max+'枚'+(willBePoisons>=1?'(トラップ)':''));
+    /* ★ [修正2] 手札5枚未満ではトラップ(4枚出し)不可。3枚出しまで。 */
+    var trapAllowed = (hand.length >= 5);
+    var max = (willBePoisons>=1 && trapAllowed) ? 4 : 3;
+    if(S.selCards.length>=max){
+      if(willBePoisons>=1 && !trapAllowed){
+        return tst('🕷️トラップは手札5枚以上が必要です');
+      }
+      return tst('最大'+max+'枚'+(willBePoisons>=1?'(トラップ)':''));
+    }
+    /* 毒薬を選ぼうとする時、トラップ不可なら拒否 */
+    if(target && target.type==='poison' && !trapAllowed){
+      return tst('🕷️トラップは手札5枚以上が必要です(毒薬は調合不可)');
+    }
     S.selCards.push(id);
     if(S.selCards.length===1)S.exclId=id;
     /* 毒薬が自動的に除外対象になってしまうのを防ぐ: 毒薬を最初に選んだ場合は exclId クリア */
